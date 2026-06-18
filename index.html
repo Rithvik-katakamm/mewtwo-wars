@@ -1,6 +1,14 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-478F9GGF6D"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-478F9GGF6D');
+</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <title>Pokemon: The Last Stand</title>
@@ -166,8 +174,8 @@ html,body{width:100%;height:100%;overflow:hidden;background:#000;color:#fff;font
 .attacking-enemy{animation:enemyAttack 0.4s ease-out !important}
 .hit-recoil{animation:hitRecoil 0.3s ease-out !important}
 
-.move-banner{position:absolute;top:42%;left:0;width:100%;text-align:center;font-size:clamp(1.8rem,5vw,3.5rem);font-weight:bold;letter-spacing:5px;z-index:30;pointer-events:none;text-shadow:3px 3px 0 #000,-1px -1px 0 #000,1px -1px 0 #000,-1px 1px 0 #000;animation:bannerSlide 0.9s ease-out forwards}
-.move-banner-bg{position:absolute;top:40%;left:0;width:100%;height:60px;z-index:29;pointer-events:none;animation:bannerBgSlide 0.9s ease-out forwards}
+.move-banner{position:absolute;top:22%;left:0;width:100%;text-align:center;font-size:clamp(1.8rem,5vw,3.5rem);font-weight:bold;letter-spacing:5px;z-index:30;pointer-events:none;text-shadow:3px 3px 0 #000,-1px -1px 0 #000,1px -1px 0 #000,-1px 1px 0 #000;animation:bannerSlide 0.9s ease-out forwards}
+.move-banner-bg{position:absolute;top:20%;left:0;width:100%;height:60px;z-index:29;pointer-events:none;animation:bannerBgSlide 0.9s ease-out forwards}
 @keyframes bannerSlide{0%{transform:translateX(-120%) skewX(-8deg);opacity:0}12%{transform:translateX(0) skewX(-3deg);opacity:1}75%{transform:translateX(0) skewX(-3deg);opacity:1}100%{transform:translateX(120%) skewX(-8deg);opacity:0}}
 @keyframes bannerBgSlide{0%{transform:translateX(-120%) skewX(-8deg);opacity:0}12%{transform:translateX(0) skewX(-8deg);opacity:0.7}75%{transform:translateX(0) skewX(-8deg);opacity:0.5}100%{transform:translateX(120%) skewX(-8deg);opacity:0}}
 
@@ -1659,7 +1667,7 @@ async function runBattleFull(party) {
   const scene = el('div', { className: 'scene active battle-scene' });
   const field = el('div', { className: 'battle-field' });
   const enemyPoke = el('div', { className: 'battle-pokemon enemy-pokemon' }, [
-    el('img', { src: spriteUrl(mewtwo.id), id: 'enemy-sprite' })
+    el('img', { src: spriteUrl(mewtwo.id), id: 'enemy-sprite', style: { opacity: '0' } })
   ]);
   const enemyHpBox = el('div', { className: 'hp-box enemy-hp-box' }, [
     el('span', { className: 'hp-name', textContent: mewtwo.name }),
@@ -1670,7 +1678,7 @@ async function runBattleFull(party) {
     el('div', { className: 'hp-numbers', id: 'enemy-hp-text', textContent: `${mewtwo.currentHp} / ${mewtwo.maxHp}` })
   ]);
   const playerPoke = el('div', { className: 'battle-pokemon player-pokemon' }, [
-    el('img', { src: backUrl(activePokemon.id), id: 'player-sprite' })
+    el('img', { src: backUrl(activePokemon.id), id: 'player-sprite', style: { opacity: '0' } })
   ]);
   const playerHpBox = el('div', { className: 'hp-box player-hp-box' }, [
     el('span', { className: 'hp-name', id: 'player-name', textContent: activePokemon.name }),
@@ -2027,9 +2035,7 @@ async function runBattleFull(party) {
   }
 
   // Entry message — send out both Pokemon with Poke Ball animations
-  // Mewtwo appears first
-  enemyPoke.querySelector('img').style.opacity = '0';
-  enemyPoke.querySelector('img').style.transform = 'scale(0.2)';
+  // Mewtwo appears first (sprites start hidden via inline style at creation)
   await wait(300);
   await showMsg(`A wild MEWTWO appeared!`, 800);
   await playSendOut(enemyPoke, false);
@@ -2057,6 +2063,7 @@ async function runBattleFull(party) {
       activeIdx = ni;
       activePokemon = party[activeIdx];
       refreshPlayer(false);
+      playerPoke.querySelector('img').style.opacity = '0';
       await showMsg(`Go, ${activePokemon.name}!`, 600);
       await playSendOut(playerPoke, true);
       continue;
@@ -2073,6 +2080,7 @@ async function runBattleFull(party) {
       activeIdx = action.targetIdx;
       activePokemon = party[activeIdx];
       refreshPlayer(false);
+      playerPoke.querySelector('img').style.opacity = '0';
       // Send out new Pokemon
       await showMsg(`Go, ${activePokemon.name}!`, 600);
       await playSendOut(playerPoke, true);
