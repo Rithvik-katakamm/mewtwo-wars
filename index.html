@@ -214,7 +214,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:#000;color:#fff;font
 @keyframes sparkleRise{0%{opacity:1;transform:translateY(0) scale(1)}100%{opacity:0;transform:translateY(-60px) scale(0.3)}}
 
 /* ===== Meadow Stage (intro cinematic + selection) ===== */
-.meadow-scene{position:absolute;top:0;left:0;width:100%;height:100%;overflow:hidden;transition:transform 2s ease-in-out}
+.meadow-scene{position:absolute;top:0;left:0;width:100%;height:100%;overflow:hidden;transition:transform 2s ease-in-out;will-change:transform}
 /* Sky: starts a bright peaceful day, transitions to stormy/scorched */
 .meadow-sky{position:absolute;top:0;left:0;width:100%;height:100%;
   background:linear-gradient(180deg,#7ec8ff 0%,#bfe9ff 40%,#dff3c4 63%,#bfe39b 63%);
@@ -1391,6 +1391,7 @@ function fxLightning(x1, y1, x2, y2, bolts=3) {
 }
 
 function fxEnergyBall(sx, sy, ex, ey, color, size=20) {
+  let glowGrd = null;  // radially symmetric glow — build once at origin, translate into place
   return { duration: 550, draw(ctx, t) {
     const x=sx+(ex-sx)*t, y=sy+(ey-sy)*t+Math.sin(t*Math.PI*4)*18;
     const al=t<0.85?1:(1-t)*6.7;
@@ -1403,10 +1404,13 @@ function fxEnergyBall(sx, sy, ex, ey, color, size=20) {
       ctx.beginPath(); ctx.arc(tx,ty,size*(1-i*0.1),0,Math.PI*2); ctx.fill();
     }
     // Glow
-    const grd=ctx.createRadialGradient(x,y,0,x,y,size*3);
-    grd.addColorStop(0,color+'99'); grd.addColorStop(1,color+'00');
-    ctx.globalAlpha=al*0.5; ctx.fillStyle=grd;
-    ctx.beginPath(); ctx.arc(x,y,size*3,0,Math.PI*2); ctx.fill();
+    if (!glowGrd) {
+      glowGrd=ctx.createRadialGradient(0,0,0,0,0,size*3);
+      glowGrd.addColorStop(0,color+'99'); glowGrd.addColorStop(1,color+'00');
+    }
+    ctx.globalAlpha=al*0.5;
+    ctx.save(); ctx.translate(x,y); ctx.fillStyle=glowGrd;
+    ctx.beginPath(); ctx.arc(0,0,size*3,0,Math.PI*2); ctx.fill(); ctx.restore();
     // Core
     ctx.globalAlpha=al; ctx.fillStyle=color;
     ctx.beginPath(); ctx.arc(x,y,size,0,Math.PI*2); ctx.fill();
@@ -1590,6 +1594,7 @@ function fxMultiHit(cx, cy, color, hits=3) {
 function fxDracoMeteor(tx, ty, fromX) {
   const sx = fromX !== undefined ? fromX : tx + (Math.random()-0.5)*200;
   const sy = -60;
+  let glowGrd = null;  // radially symmetric glow — build once at origin, translate into place
   return { duration: 650, draw(ctx, t) {
     const x = sx + (tx - sx) * t;
     const y = sy + (ty - sy) * t;
@@ -1603,12 +1608,15 @@ function fxDracoMeteor(tx, ty, fromX) {
       ctx.beginPath(); ctx.arc(tx2, ty2, 14 * (1 - i * 0.07), 0, Math.PI*2); ctx.fill();
     }
     // Glow
-    const grd = ctx.createRadialGradient(x, y, 0, x, y, 38);
-    grd.addColorStop(0, 'rgba(255,200,120,0.9)');
-    grd.addColorStop(0.4, 'rgba(160,60,255,0.5)');
-    grd.addColorStop(1, 'rgba(160,60,255,0)');
-    ctx.globalAlpha = al * 0.7; ctx.fillStyle = grd;
-    ctx.beginPath(); ctx.arc(x, y, 38, 0, Math.PI*2); ctx.fill();
+    if (!glowGrd) {
+      glowGrd = ctx.createRadialGradient(0, 0, 0, 0, 0, 38);
+      glowGrd.addColorStop(0, 'rgba(255,200,120,0.9)');
+      glowGrd.addColorStop(0.4, 'rgba(160,60,255,0.5)');
+      glowGrd.addColorStop(1, 'rgba(160,60,255,0)');
+    }
+    ctx.globalAlpha = al * 0.7;
+    ctx.save(); ctx.translate(x, y); ctx.fillStyle = glowGrd;
+    ctx.beginPath(); ctx.arc(0, 0, 38, 0, Math.PI*2); ctx.fill(); ctx.restore();
     // Core
     ctx.globalAlpha = al; ctx.fillStyle = '#ffe9b0';
     ctx.beginPath(); ctx.arc(x, y, 12, 0, Math.PI*2); ctx.fill();
@@ -1621,14 +1629,17 @@ function fxDracoMeteor(tx, ty, fromX) {
 // Protect — a shimmering translucent shield dome around (cx,cy).
 // Fades in, holds, fades out; hex shimmer ring for the energy-barrier look.
 function fxProtect(cx, cy, radius=70, color='#66e0ff') {
+  let grd = null;  // dome gradient is fixed — build once, reuse each frame
   return { duration: 1600, draw(ctx, t) {
     const al = t < 0.18 ? t / 0.18 : t > 0.7 ? (1 - t) / 0.3 : 1;
     const a = Math.max(0, al);
     // Dome fill
-    const grd = ctx.createRadialGradient(cx, cy, radius*0.2, cx, cy, radius);
-    grd.addColorStop(0, color + '11');
-    grd.addColorStop(0.75, color + '33');
-    grd.addColorStop(1, color + '66');
+    if (!grd) {
+      grd = ctx.createRadialGradient(cx, cy, radius*0.2, cx, cy, radius);
+      grd.addColorStop(0, color + '11');
+      grd.addColorStop(0.75, color + '33');
+      grd.addColorStop(1, color + '66');
+    }
     ctx.globalAlpha = a * 0.7; ctx.fillStyle = grd;
     ctx.beginPath(); ctx.arc(cx, cy, radius, 0, Math.PI*2); ctx.fill();
     // Rim
