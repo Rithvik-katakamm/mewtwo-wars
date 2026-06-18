@@ -78,15 +78,28 @@ html,body{width:100%;height:100%;overflow:hidden;background:#000;color:#fff;font
 .entrance-text{position:absolute;top:15%;left:50%;transform:translateX(-50%);font-size:clamp(1.5rem,4vw,3rem);color:#bf5fff;text-shadow:0 0 30px rgba(160,60,255,0.8);opacity:0;transition:opacity 1s;z-index:12;text-align:center;letter-spacing:4px;white-space:nowrap}
 
 /* Battle Scene */
-.battle-scene{background:linear-gradient(180deg,#0a0a1a 0%,#1a1a2e 50%,#0d1117 100%);display:flex;flex-direction:column}
-.battle-field{flex:1;position:relative;min-height:0}
-.battle-pokemon{position:absolute;transition:transform 0.3s}
+/* Scorched meadow battlefield (same world as the intro, after Mewtwo's attack) */
+.battle-scene{background:linear-gradient(180deg,#1a0f1f 0%,#3a1622 32%,#5e2418 52%,#2a1410 70%,#160c0a 100%);display:flex;flex-direction:column}
+.battle-field{flex:1;width:100%;position:relative;min-height:0;overflow:hidden}
+.battle-field::before{content:'';position:absolute;bottom:0;left:0;width:100%;height:34%;
+  background:linear-gradient(180deg,#3a2416 0%,#241410 60%,#120a08 100%);
+  box-shadow:inset 0 14px 30px rgba(0,0,0,0.5)}
+.battle-field::after{content:'';position:absolute;bottom:0;left:0;width:100%;height:60px;z-index:1;
+  background:linear-gradient(0deg,rgba(255,90,20,0.45) 0%,rgba(255,140,30,0.18) 45%,transparent 100%);
+  animation:fireFlicker 0.18s infinite alternate}
+.ember{position:absolute;bottom:0;width:4px;height:4px;border-radius:50%;background:#ffb050;box-shadow:0 0 7px #ff7a1a;pointer-events:none;z-index:2;opacity:0;animation:emberRise linear infinite}
+@keyframes emberRise{0%{transform:translateY(0) translateX(0) scale(1);opacity:0}12%{opacity:0.9}100%{transform:translateY(-55vh) translateX(24px) scale(0.4);opacity:0}}
+/* Subtle embers drifting up from the scorched ground — small, flickering, sparse */
+.meadow-ember{position:absolute;border-radius:50%;background:#ffba5c;box-shadow:0 0 5px 1px #ff7a1a;pointer-events:none;z-index:3;opacity:0;animation:meadowEmberRise linear forwards}
+@keyframes meadowEmberRise{0%{transform:translateY(0) translateX(0) scale(1);opacity:0}8%{opacity:.85}22%{opacity:.3}38%{opacity:.8}55%{opacity:.35}72%{opacity:.6}100%{transform:translateY(var(--rise,-20vh)) translateX(var(--drift,10px)) scale(.25);opacity:0}}
+.battle-pokemon{position:absolute;transition:transform 0.3s;z-index:3}
+.battle-pokemon::after{content:'';position:absolute;bottom:-4px;left:50%;transform:translateX(-50%);width:72%;height:18px;border-radius:50%;background:radial-gradient(ellipse,rgba(0,0,0,0.5),transparent 70%);z-index:-1}
 .battle-pokemon img{transition:opacity 0.3s,filter 0.3s}
 .battle-pokemon.hit{animation:blink 0.1s linear 3}
-.enemy-pokemon{top:clamp(20px,5%,60px);right:clamp(20px,10%,120px)}
-.enemy-pokemon img{width:clamp(100px,20vw,200px);filter:drop-shadow(0 5px 20px rgba(160,60,255,0.4));animation:idleBob 1.9s ease-in-out infinite 0.4s}
-.player-pokemon{bottom:clamp(20px,8%,80px);left:clamp(20px,10%,120px)}
-.player-pokemon img{width:clamp(110px,22vw,220px);filter:drop-shadow(0 5px 20px rgba(255,255,255,0.2));animation:idleBob 1.6s ease-in-out infinite}
+.enemy-pokemon{top:clamp(20px,6%,80px);right:clamp(70px,22vw,420px)}
+.enemy-pokemon img{width:clamp(130px,25vw,280px);filter:drop-shadow(0 6px 22px rgba(160,60,255,0.45));animation:idleBob 1.9s ease-in-out infinite 0.4s}
+.player-pokemon{bottom:clamp(64px,14%,170px);left:clamp(60px,18vw,360px)}
+.player-pokemon img{width:clamp(150px,28vw,320px);filter:drop-shadow(0 6px 22px rgba(255,210,120,0.3));animation:idleBob 1.6s ease-in-out infinite}
 @keyframes idleBob{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
 
 .hp-box{position:absolute;background:rgba(0,0,0,0.8);border:2px solid #555;border-radius:8px;padding:clamp(8px,1.5vw,15px);min-width:clamp(180px,30vw,300px)}
@@ -174,8 +187,8 @@ html,body{width:100%;height:100%;overflow:hidden;background:#000;color:#fff;font
 .attacking-enemy{animation:enemyAttack 0.4s ease-out !important}
 .hit-recoil{animation:hitRecoil 0.3s ease-out !important}
 
-.move-banner{position:absolute;top:22%;left:0;width:100%;text-align:center;font-size:clamp(1.8rem,5vw,3.5rem);font-weight:bold;letter-spacing:5px;z-index:30;pointer-events:none;text-shadow:3px 3px 0 #000,-1px -1px 0 #000,1px -1px 0 #000,-1px 1px 0 #000;animation:bannerSlide 0.9s ease-out forwards}
-.move-banner-bg{position:absolute;top:20%;left:0;width:100%;height:60px;z-index:29;pointer-events:none;animation:bannerBgSlide 0.9s ease-out forwards}
+.move-banner{position:absolute;top:22%;left:0;width:100%;text-align:center;font-size:clamp(1.8rem,5vw,3.5rem);font-weight:bold;letter-spacing:5px;z-index:30;pointer-events:none;text-shadow:3px 3px 0 #000,-1px -1px 0 #000,1px -1px 0 #000,-1px 1px 0 #000;animation:bannerSlide 1.3s ease-out forwards}
+.move-banner-bg{position:absolute;top:20%;left:0;width:100%;height:60px;z-index:29;pointer-events:none;animation:bannerBgSlide 1.3s ease-out forwards}
 @keyframes bannerSlide{0%{transform:translateX(-120%) skewX(-8deg);opacity:0}12%{transform:translateX(0) skewX(-3deg);opacity:1}75%{transform:translateX(0) skewX(-3deg);opacity:1}100%{transform:translateX(120%) skewX(-8deg);opacity:0}}
 @keyframes bannerBgSlide{0%{transform:translateX(-120%) skewX(-8deg);opacity:0}12%{transform:translateX(0) skewX(-8deg);opacity:0.7}75%{transform:translateX(0) skewX(-8deg);opacity:0.5}100%{transform:translateX(120%) skewX(-8deg);opacity:0}}
 
@@ -200,6 +213,64 @@ html,body{width:100%;height:100%;overflow:hidden;background:#000;color:#fff;font
 .heal-sparkle{position:absolute;pointer-events:none;z-index:16;width:6px;height:6px;background:#44ff88;border-radius:50%;box-shadow:0 0 8px #22ff66;animation:sparkleRise 0.8s ease-out forwards}
 @keyframes sparkleRise{0%{opacity:1;transform:translateY(0) scale(1)}100%{opacity:0;transform:translateY(-60px) scale(0.3)}}
 
+/* ===== Meadow Stage (intro cinematic + selection) ===== */
+.meadow-scene{position:absolute;top:0;left:0;width:100%;height:100%;overflow:hidden;transition:transform 2s ease-in-out}
+/* Sky: starts a bright peaceful day, transitions to stormy/scorched */
+.meadow-sky{position:absolute;top:0;left:0;width:100%;height:100%;
+  background:linear-gradient(180deg,#7ec8ff 0%,#bfe9ff 40%,#dff3c4 63%,#bfe39b 63%);
+  transition:background 2.5s ease,filter 2.5s ease}
+.meadow-scene.dark .meadow-sky{background:linear-gradient(180deg,#1a1230 0%,#3a1a40 38%,#5a2a30 60%,#3a1e1a 60%);filter:brightness(0.8)}
+.meadow-scene.scorched .meadow-sky{background:linear-gradient(180deg,#1a0f1f 0%,#3a1622 36%,#5e2418 58%,#2a1410 58%)}
+/* Sun */
+.meadow-sun{position:absolute;top:10%;left:50%;transform:translateX(-50%);width:90px;height:90px;border-radius:50%;
+  background:radial-gradient(circle,#fffbe0,#ffe48a 60%,rgba(255,210,90,0) 72%);transition:opacity 2s,transform 2s}
+.meadow-scene.dark .meadow-sun{opacity:0;transform:translateX(-50%) scale(0.4)}
+/* Distant tree line */
+.meadow-trees{position:absolute;bottom:37%;left:0;width:100%;height:90px;
+  background:radial-gradient(ellipse 60px 50px at 10% 100%,#3f7a3a 60%,transparent 62%),
+             radial-gradient(ellipse 80px 60px at 28% 100%,#367033 60%,transparent 62%),
+             radial-gradient(ellipse 70px 55px at 48% 100%,#3f7a3a 60%,transparent 62%),
+             radial-gradient(ellipse 90px 60px at 68% 100%,#367033 60%,transparent 62%),
+             radial-gradient(ellipse 65px 50px at 86% 100%,#3f7a3a 60%,transparent 62%);
+  opacity:0.85;transition:filter 2.5s}
+.meadow-scene.dark .meadow-trees,.meadow-scene.scorched .meadow-trees{filter:brightness(0.3) saturate(0.5)}
+/* Grass band */
+.meadow-grass{position:absolute;bottom:0;left:0;width:100%;height:38%;
+  background:linear-gradient(180deg,#7ec850 0%,#5fa838 40%,#4a8c2c 100%);transition:filter 2.5s,background 2.5s}
+.meadow-scene.scorched .meadow-grass{background:linear-gradient(180deg,#5a3a22 0%,#3a2416 45%,#241410 100%);filter:brightness(0.7)}
+.meadow-scene.dark .meadow-grass{filter:brightness(0.55) saturate(0.7)}
+/* Meadow Pokemon */
+.meadow-mon{position:absolute;z-index:5;transition:opacity 0.6s,transform 0.6s}
+.meadow-mon img{height:clamp(78px,12vw,120px);width:auto;image-rendering:pixelated;filter:drop-shadow(0 4px 3px rgba(0,0,0,0.35))}
+.hero-pick img{height:clamp(118px,18vw,168px);width:auto}
+.meadow-mon.frolic{animation:frolic var(--frolicDur,2.4s) ease-in-out infinite}
+@keyframes frolic{0%,100%{transform:translateY(0)}25%{transform:translateY(-12px) rotate(-3deg)}50%{transform:translateY(0)}75%{transform:translateY(-8px) rotate(3deg)}}
+.meadow-mon.cower{animation:cower 0.4s ease-in-out infinite}
+@keyframes cower{0%,100%{transform:translateX(0) scale(0.92)}50%{transform:translateX(-3px) scale(0.92)}}
+/* Meadow title + dialogue */
+.meadow-title{position:absolute;top:18%;left:50%;transform:translateX(-50%);z-index:20;text-align:center;
+  font-size:clamp(1.4rem,4vw,2.8rem);color:#fff;text-shadow:0 2px 12px rgba(0,0,0,0.6);letter-spacing:3px;opacity:0;transition:opacity 1.5s}
+.dialogue-box{position:absolute;bottom:6%;left:50%;transform:translateX(-50%);z-index:30;width:min(90%,640px);
+  background:rgba(10,8,16,0.92);border:3px solid #ffd700;border-radius:14px;padding:clamp(14px,2.5vw,24px);
+  box-shadow:0 0 30px rgba(0,0,0,0.6);opacity:0;transition:opacity 0.5s}
+.dialogue-box.visible{opacity:1}
+.dialogue-speaker{color:#ffd700;font-size:clamp(0.9rem,2vw,1.2rem);letter-spacing:2px;margin-bottom:8px;font-weight:bold}
+.dialogue-text{color:#fff;font-size:clamp(0.95rem,2.2vw,1.3rem);line-height:1.6;min-height:3em}
+.dialogue-hint{color:#888;font-size:0.75rem;margin-top:10px;text-align:right;animation:pulse 1.6s infinite}
+/* Hero pick (hybrid: meadow + card) */
+.hero-pick{cursor:pointer;z-index:8}
+.hero-pick .hero-glow{position:absolute;bottom:-6px;left:50%;transform:translateX(-50%);width:80%;height:18px;border-radius:50%;
+  background:radial-gradient(ellipse,rgba(255,215,0,0.6),transparent 70%);opacity:0;transition:opacity 0.3s}
+.hero-pick:hover .hero-glow,.hero-pick.sel .hero-glow{opacity:1}
+.hero-pick:hover{transform:translateY(-6px) scale(1.08)}
+.hero-label{position:absolute;bottom:-26px;left:50%;transform:translateX(-50%);color:#fff;font-size:0.8rem;letter-spacing:1px;
+  text-shadow:0 1px 4px #000;white-space:nowrap}
+.hero-card{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) scale(0.9);z-index:40;
+  background:rgba(8,8,18,0.96);border:2px solid #ffd700;border-radius:16px;padding:clamp(16px,3vw,28px);text-align:center;
+  width:clamp(220px,40vw,320px);opacity:0;transition:opacity 0.3s,transform 0.3s;pointer-events:none}
+.hero-card.visible{opacity:1;transform:translate(-50%,-50%) scale(1);pointer-events:auto}
+.hero-card img{width:clamp(90px,16vw,150px);height:clamp(90px,16vw,150px)}
+
 @media(max-width:600px){
   .selection-container{flex-direction:column;align-items:center}
   .starter-card{width:85vw}
@@ -221,6 +292,7 @@ const SPRITE_BASE = 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sp
 const spriteUrl = id => `${SPRITE_BASE}/${id}.png`;
 const artUrl = id => `${SPRITE_BASE}/other/official-artwork/${id}.png`;
 const backUrl = id => `${SPRITE_BASE}/back/${id}.png`;
+const animUrl = id => `${SPRITE_BASE}/versions/generation-v/black-white/animated/${id}.gif`;
 
 const TYPE_COLORS = {
   fire:'#f08030',water:'#6890f0',electric:'#f8d030',dragon:'#7038f8',
@@ -283,9 +355,9 @@ const STARTERS_DATA = {
     id: 25, name: 'PIKACHU', types: ['electric'], maxHp: 500,
     atk: 155, def: 135, spd: 180,
     moves: [
-      { name: 'Volt Tackle', type: 'electric', power: 120, accuracy: 100, pp: 15, maxPp: 15, recoil: 0.33 },
+      { name: 'Rising Volt Tackle', type: 'electric', power: 160, accuracy: 95, pp: 10, maxPp: 10 },
       { name: 'Thunder', type: 'electric', power: 110, accuracy: 70, pp: 10, maxPp: 10 },
-      { name: 'Surf', type: 'water', power: 90, accuracy: 100, pp: 15, maxPp: 15 },
+      { name: 'Electro Ball', type: 'electric', power: 90, accuracy: 100, pp: 10, maxPp: 10 },
       { name: 'Iron Tail', type: 'steel', power: 100, accuracy: 75, pp: 15, maxPp: 15 }
     ]
   }
@@ -303,14 +375,27 @@ const MEWTWO_DATA = {
 };
 
 const LEGENDARIES = [
-  { id: 483, name: 'Dialga' },
-  { id: 484, name: 'Palkia' },
-  { id: 480, name: 'Uxie' },
-  { id: 481, name: 'Mesprit' },
-  { id: 482, name: 'Azelf' }
+  { id: 149, name: 'Dragonite' },
+  { id: 248, name: 'Tyranitar' },
+  { id: 373, name: 'Salamence' },
+  { id: 445, name: 'Garchomp' },
+  { id: 18,  name: 'Pidgeot' }
 ];
 
-const FLEE_POKEMON = [16, 19, 10];
+const FLEE_POKEMON = [371, 246, 443]; // Bagon, Larvitar, Gible
+
+// Proportional heights derived from Pokédex measurements
+const MEADOW_HEIGHTS = {
+  149: 'clamp(90px,15vw,128px)',    // Dragonite 2.2m
+  248: 'clamp(82px,13.5vw,116px)', // Tyranitar 2.0m
+  445: 'clamp(78px,13vw,110px)',   // Garchomp 1.9m
+  373: 'clamp(62px,10vw,90px)',    // Salamence 1.5m
+  18:  'clamp(62px,10vw,90px)',    // Pidgeot 1.5m
+  443: 'clamp(30px,4.5vw,44px)',   // Gible 0.7m
+  371: 'clamp(28px,4vw,38px)',     // Bagon 0.6m
+  246: 'clamp(28px,4vw,38px)',     // Larvitar 0.6m
+  150: 'clamp(160px,28vw,270px)',  // Mewtwo 2.0m — boss-scaled larger
+};
 
 // ============================================================
 // AUDIO ENGINE
@@ -327,7 +412,7 @@ function initAudio() {
   masterGain.gain.value = 0.5;
   masterGain.connect(audioCtx.destination);
   musicGain = audioCtx.createGain();
-  musicGain.gain.value = 0.35;
+  musicGain.gain.value = 1.0;   // CONSTANT music bus — per-song gain nodes carry the level
   musicGain.connect(masterGain);
   sfxGain = audioCtx.createGain();
   sfxGain.gain.value = 0.6;
@@ -472,155 +557,273 @@ function playRumble(duration=3) {
   osc.start(t); osc.stop(t + duration + 0.05);
 }
 
-function playSomberMusic() {
-  if (!audioCtx) return;
-  const t = audioCtx.currentTime;
-  const notes = [164.81, 130.81, 110.00, 82.41, 110.00, 82.41];
-  notes.forEach((f, i) => {
-    playTone(f, 1.2, 'sine', 0.15, t + i * 1.0, musicGain);
-    playTone(f * 2, 1.0, 'triangle', 0.08, t + i * 1.0 + 0.2, musicGain);
-  });
+// ============================================================
+// MUSIC ENGINE — one looping track at a time, each isolated.
+// Every track plays into its OWN gain node (child of the constant
+// musicGain). stopMusic ramps that node to 0 then disconnect()s it,
+// so the ~8s of oscillators each loop schedules ahead play into a
+// dead node and stay silent — no track can ever bleed into the next.
+// musicGain itself is a CONSTANT and must never be ramped again.
+// ============================================================
+let currentSongGain = null;
+let currentSongTimer = null;
+let currentSongName = null;
+
+function stopMusic(fade = 0.4) {
+  if (currentSongTimer) { clearTimeout(currentSongTimer); currentSongTimer = null; }
+  currentSongName = null;
+  const g = currentSongGain;
+  currentSongGain = null;
+  if (g && audioCtx) {
+    const now = audioCtx.currentTime;
+    try { g.gain.cancelScheduledValues(now); } catch(e) {}
+    try { g.gain.setValueAtTime(g.gain.value, now); } catch(e) {}
+    g.gain.linearRampToValueAtTime(0.0001, now + fade);
+    setTimeout(() => { try { g.disconnect(); } catch(e) {} }, (fade + 0.3) * 1000);
+  }
+}
+// Aliases kept for existing call sites.
+function stopBattleMusic() { stopMusic(0.7); }
+function stopPeacefulMusic() { stopMusic(0.5); }
+function stopSomberMusic() { stopMusic(0.5); }
+
+// Create a fresh isolated gain node for a new track, fading it up from
+// silence to `peak` over `fadeIn`. Becomes the one currentSongGain.
+function newSongGain(peak, fadeIn) {
+  if (currentSongGain) stopMusic(0.25); // defensive; normal flow already stopped
+  const g = audioCtx.createGain();
+  const now = audioCtx.currentTime;
+  g.gain.setValueAtTime(0.0001, now);
+  g.gain.linearRampToValueAtTime(peak, now + fadeIn);
+  g.connect(musicGain);
+  currentSongGain = g;
+  return g;
 }
 
-function playVictoryFanfare() {
-  if (!audioCtx) return;
-  const t = audioCtx.currentTime;
-  const melody = [523.25,523.25,523.25,523.25,415.30,466.16,523.25,0,466.16,523.25];
-  const durs =   [0.15,  0.15,  0.15,  0.4,   0.15,  0.15,  0.6,  0.2,0.15,  0.8];
-  let offset = 0;
-  melody.forEach((f, i) => {
-    if (f > 0) {
-      playTone(f, durs[i] * 0.9, 'square', 0.3, t + offset, musicGain);
-      playTone(f / 2, durs[i] * 0.9, 'triangle', 0.15, t + offset, musicGain);
-    }
-    offset += durs[i];
-  });
+// Drive a looping track: re-runs fill(startT) each loop until this
+// track's gain node is no longer the active one (identity check).
+function loopSong(g, loopDur, fill) {
+  function run(startT) {
+    if (g !== currentSongGain) return;
+    fill(startT);
+    currentSongTimer = setTimeout(() => run(startT + loopDur), (loopDur - 0.1) * 1000);
+  }
+  run(audioCtx.currentTime + 0.06);
 }
-
-// ============================================================
-// BATTLE MUSIC - Procedural 8-bit
-// ============================================================
-let musicPlaying = false;
-let musicTimer = null;
-let nextLoopTime = 0;
 
 const N = {
   E2:82.41,Fs2:92.50,G2:98.00,A2:110.00,B2:123.47,
   C3:130.81,Ds3:155.56,D3:146.83,E3:164.81,Fs3:185.00,G3:196.00,A3:220.00,
   B3:246.94,C4:261.63,D4:293.66,Ds4:311.13,E4:329.63,Fs4:369.99,G4:392.00,
   A4:440.00,B4:493.88,C5:523.25,D5:587.33,Ds5:622.25,E5:659.25,Fs5:739.99,G5:783.99,
+  A5:880.00,B5:987.77,D6:1174.66,
   0:0
 };
 
-function startBattleMusic() {
-  if (musicPlaying) return;
-  musicPlaying = true;
-  musicGain.gain.setValueAtTime(0.35, audioCtx.currentTime);
+// ---- PEACE: gentle G-major arpeggios, the world before the storm ----
+function playPeacefulMeadowMusic() {
+  if (!audioCtx) return;
+  const out = newSongGain(0.22, 1.4);
+  const bpm = 116;
+  const step = 60 / bpm / 4;       // 16th note
+  const loopDur = step * 16 * 4;   // 4 bars
 
-  const bpm = 170;
-  const step = 60 / bpm / 4; // 16th note
-  const barSteps = 16;
-  const bars = 4;
-  const loopDur = step * barSteps * bars;
-
-  function scheduleLoop(startT) {
-    if (!musicPlaying) return;
-
-    // Bass (square, low)
-    const bass = [
-      // Bar 1 - Em
-      [N.E2,0],[0,1],[N.E2,2],[N.E3,3],[N.E2,4],[0,5],[N.E2,6],[N.E3,7],
-      [N.E2,8],[0,9],[N.E2,10],[N.B2,11],[N.E2,12],[N.G2,13],[N.B2,14],[N.E3,15],
-      // Bar 2 - C
-      [N.C3,16],[0,17],[N.C3,18],[N.G2,19],[N.C3,20],[0,21],[N.C3,22],[N.G2,23],
-      [N.C3,24],[0,25],[N.E3,26],[N.C3,27],[N.G2,28],[N.C3,29],[N.E3,30],[N.G3,31],
-      // Bar 3 - D
-      [N.D3,32],[0,33],[N.D3,34],[N.A2,35],[N.D3,36],[0,37],[N.D3,38],[N.A2,39],
-      [N.D3,40],[0,41],[N.Fs3,42],[N.D3,43],[N.A2,44],[N.D3,45],[N.Fs3,46],[N.A3,47],
-      // Bar 4 - B
-      [N.B2,48],[0,49],[N.B2,50],[N.Fs2,51],[N.B2,52],[0,53],[N.B2,54],[N.Fs2,55],
-      [N.B2,56],[N.Ds3,57],[N.Fs3,58],[N.B2,59],[N.E2,60],[N.E2,61],[N.E3,62],[N.E2,63]
+  loopSong(out, loopDur, (startT) => {
+    // G → Em → C → D arpeggios (triangle, soft)
+    const melody = [
+      [392, 0, 2], [493.88, 2, 2], [587.33, 4, 2], [783.99, 6, 2],   // G bar
+      [587.33, 8, 2], [493.88, 10, 2], [392, 12, 4],
+      [329.63, 16, 2], [392, 18, 2], [493.88, 20, 2], [659.25, 22, 2],  // Em bar
+      [493.88, 24, 2], [392, 26, 2], [329.63, 28, 4],
+      [261.63, 32, 2], [329.63, 34, 2], [392, 36, 2], [523.25, 38, 2],  // C bar
+      [392, 40, 2], [329.63, 42, 2], [261.63, 44, 4],
+      [293.66, 48, 2], [369.99, 50, 2], [440, 52, 2], [587.33, 54, 2],  // D bar
+      [440, 56, 2], [369.99, 58, 2], [293.66, 60, 4],
     ];
-    bass.forEach(([freq, s]) => {
-      if (freq > 0) playTone(freq, step * 0.85, 'square', 0.12, startT + s * step, musicGain);
+    melody.forEach(([freq, s, dur]) => {
+      playTone(freq, step * dur * 0.72, 'triangle', 0.11, startT + s * step, out);
     });
-
-    // Lead melody (square, higher)
-    const lead = [
-      // Bar 1 - Em
-      [N.E5,0,2],[N.D5,2,2],[N.B4,4,2],[N.G4,6,1],[N.A4,7,1],
-      [N.B4,8,2],[N.E5,10,1],[N.D5,11,1],[N.B4,12,2],[N.G4,14,2],
-      // Bar 2 - C
-      [N.E4,16,2],[N.G4,18,2],[N.C5,20,2],[N.B4,22,1],[N.G4,23,1],
-      [N.A4,24,2],[N.G4,26,2],[N.E4,28,2],[N.G4,30,2],
-      // Bar 3 - D
-      [N.Fs4,32,2],[N.A4,34,2],[N.D5,36,2],[N.E5,38,1],[N.D5,39,1],
-      [N.A4,40,2],[N.Fs4,42,2],[N.D4,44,2],[N.Fs4,46,2],
-      // Bar 4 - B
-      [N.Ds4,48,2],[N.Fs4,50,2],[N.B4,52,2],[N.Ds5,54,1],[N.B4,55,1],
-      [N.Fs4,56,2],[N.E4,58,2],[N.Ds4,60,1],[N.E4,61,1],[N.Fs4,62,2]
-    ];
-    lead.forEach(([freq, s, dur]) => {
-      if (freq > 0) playTone(freq, step * dur * 0.8, 'square', 0.1, startT + s * step, musicGain);
+    // Sine bass (root note per quarter)
+    [[196, 0], [196, 4], [196, 8], [196, 12],
+     [164.81, 16], [164.81, 20], [164.81, 24], [164.81, 28],
+     [130.81, 32], [130.81, 36], [130.81, 40], [130.81, 44],
+     [146.83, 48], [146.83, 52], [146.83, 56], [146.83, 60]].forEach(([freq, s]) => {
+      playTone(freq, step * 3.5, 'sine', 0.09, startT + s * step, out);
     });
-
-    // Arpeggios (pulse-ish via triangle)
-    const arpChords = [
-      [N.E4, N.G4, N.B4, N.E5],  // Em
-      [N.C4, N.E4, N.G4, N.C5],  // C
-      [N.D4, N.Fs4, N.A4, N.D5], // D
-      [N.B3, N.Ds4, N.Fs4, N.B4] // B
-    ];
-    for (let bar = 0; bar < 4; bar++) {
-      const chord = arpChords[bar];
-      for (let i = 0; i < 16; i++) {
-        const noteIdx = i % 4;
-        const s = bar * 16 + i;
-        playTone(chord[noteIdx], step * 0.6, 'sawtooth', 0.04, startT + s * step, musicGain);
-      }
-    }
-
-    // Drums
-    for (let bar = 0; bar < 4; bar++) {
-      for (let i = 0; i < 16; i++) {
-        const s = bar * 16 + i;
-        const t = startT + s * step;
-        // Hi-hat every other step
-        if (i % 2 === 0) playNoise(0.03, 0.06, t, musicGain);
-        // Kick
-        if (i === 0 || i === 6 || i === 8 || i === 12) {
-          const osc = audioCtx.createOscillator();
-          const g = audioCtx.createGain();
-          osc.type = 'sine';
-          osc.frequency.setValueAtTime(150, t);
-          osc.frequency.exponentialRampToValueAtTime(30, t + 0.12);
-          g.gain.setValueAtTime(0.2, t);
-          g.gain.exponentialRampToValueAtTime(0.001, t + 0.12);
-          osc.connect(g); g.connect(musicGain);
-          osc.start(t); osc.stop(t + 0.13);
-        }
-        // Snare
-        if (i === 4 || i === 12) {
-          playNoise(0.08, 0.12, t, musicGain);
-          playTone(200, 0.05, 'triangle', 0.08, t, musicGain);
-        }
-      }
-    }
-
-    nextLoopTime = startT + loopDur;
-    musicTimer = setTimeout(() => scheduleLoop(nextLoopTime), (loopDur - 0.1) * 1000);
-  }
-
-  scheduleLoop(audioCtx.currentTime + 0.05);
+  });
 }
 
-function stopBattleMusic() {
-  musicPlaying = false;
-  if (musicTimer) { clearTimeout(musicTimer); musicTimer = null; }
-  if (audioCtx && musicGain) {
-    try { musicGain.gain.cancelScheduledValues(audioCtx.currentTime); } catch(e) {}
-    musicGain.gain.linearRampToValueAtTime(0.001, audioCtx.currentTime + 0.8);
-  }
+// ---- DOOM: slow, low, dissonant dread. Mewtwo has come. ----
+// Deliberately the OPPOSITE of the battle theme: ~58bpm, low register,
+// sparse tolling bass, a tritone drone, a mournful descending motif.
+function playOminousMusic() {
+  if (!audioCtx) return;
+  const out = newSongGain(0.34, 1.8); // slow swell in
+  const b = 60 / 58;                  // one beat ~1.03s
+  const loopDur = b * 8;              // 8-beat loop
+
+  loopSong(out, loopDur, (startT) => {
+    // Deep funeral toll — D, then shifts to F for unease
+    playTone(73.42, b * 3.6, 'sine', 0.32, startT + 0 * b, out);   // D2
+    playTone(36.71, b * 3.8, 'sine', 0.22, startT + 0 * b, out);   // D1
+    playTone(87.31, b * 3.6, 'sine', 0.28, startT + 4 * b, out);   // F2
+    playTone(36.71, b * 3.8, 'sine', 0.18, startT + 4 * b, out);   // D1
+    // Sustained tritone drone (D + Ab) — the sound of wrongness
+    playTone(73.42,  loopDur, 'sawtooth', 0.035, startT, out);     // D2
+    playTone(103.83, loopDur, 'sawtooth', 0.030, startT, out);     // Ab2 (tritone)
+    // Mournful descending melody (triangle)
+    [[220, 0.5, 1.5], [174.61, 2.0, 1.5], [164.81, 4.0, 1.5], [146.83, 5.5, 2.4]]
+      .forEach(([f, bt, du]) => playTone(f, du * b * 0.95, 'triangle', 0.13, startT + bt * b, out)); // A3 F3 E3 D3
+    // Faint unsettling high tritone shimmer near the end
+    playTone(466.16, b * 1.3, 'sine', 0.05,  startT + 6.5 * b, out); // Bb4
+    playTone(659.25, b * 1.3, 'sine', 0.035, startT + 6.7 * b, out); // E5
+  });
+}
+
+// ---- BATTLE: the ominous "Doom" theme grown into a battle march. ----
+// Same dark D-minor world as playOminousMusic (low register, tritone
+// accent, the A→F→E→D mournful descent) — but at a heavy ~80bpm march
+// with a Dm–Bb–Gm–A progression, drums, and a two-phrase escalation:
+// Phrase A keeps the brooding intro feel; Phrase B brings full drums,
+// a rising lead and the dominant's tension for battle intensity.
+function startBattleMusic() {
+  if (!audioCtx) return;
+  if (currentSongGain && currentSongTimer && currentSongName === 'battle') return;
+  const out = newSongGain(0.30, 0.9);
+  currentSongName = 'battle';
+
+  const F = {
+    D1:36.71, D2:73.42, F2:87.31, Ab2:103.83, G2:98.00, A2:110.00, Bb2:116.54,
+    C3:130.81, D3:146.83, E3:164.81, F3:174.61, G3:196.00, A3:220.00, Bb3:233.08,
+    Cs4:277.18, D4:293.66, E4:329.63, F4:349.23, G4:392.00, A4:440.00, Bb4:466.16,
+    C5:523.25, Cs5:554.37, D5:587.33, E5:659.25
+  };
+  const b = 60 / 80;        // heavy doom-march beat
+  const loopDur = b * 16;   // 16-beat loop = two 8-beat phrases
+
+  loopSong(out, loopDur, (startT) => {
+    // nt(freq, beatOffset, beatDuration, oscType, volume)
+    const nt = (f, bt, du, type, vol) => playTone(f, du * b * 0.92, type, vol, startT + bt * b, out);
+
+    // --- Tonic D pedal + dark tritone stab (identity link to the intro dread) ---
+    nt(F.D1, 0, 4, 'sine', 0.10);
+    nt(F.D1, 8, 4, 'sine', 0.10);
+    nt(F.D2,  0, 0.6, 'sawtooth', 0.10);
+    nt(F.Ab2, 0, 0.6, 'sawtooth', 0.07);   // the "wrongness" tritone
+
+    // --- Driving eighth-note bass: Dm – Bb – Gm – A(dominant) ---
+    const chordBass = [
+      { root: F.D2,  fifth: F.A2, at: 0  }, // Dm
+      { root: F.Bb2, fifth: F.F2, at: 4  }, // Bb
+      { root: F.G2,  fifth: F.D3, at: 8  }, // Gm
+      { root: F.A2,  fifth: F.E3, at: 12 }, // A (pulls back to Dm)
+    ];
+    chordBass.forEach(({ root, fifth, at }) => {
+      [0, 0.5, 1, 1.5, 2, 3].forEach(o => nt(root, at + o, 0.5, 'square', 0.12));
+      nt(fifth, at + 2.5, 0.5, 'square', 0.11);
+      nt(fifth, at + 3.5, 0.5, 'square', 0.11);
+    });
+
+    // --- Sustained dark pad per chord (soft sawtooth bed) ---
+    const pads = [
+      { notes: [F.D3, F.F3, F.A3],  at: 0  }, // Dm
+      { notes: [F.Bb2, F.D3, F.F3], at: 4  }, // Bb
+      { notes: [F.G2, F.Bb3, F.D4], at: 8  }, // Gm
+      { notes: [F.A2, F.Cs4, F.E4], at: 12 }, // A major (C# leading tone)
+    ];
+    pads.forEach(({ notes, at }) => notes.forEach(f => nt(f, at, 4, 'sawtooth', 0.026)));
+
+    // --- PHRASE A melody (beats 0–7): the mournful descent, carried over ---
+    [[F.A4,0,1.5],[F.F4,1.5,1],[F.E4,3,1],[F.D4,4,1.5],[F.F4,5.5,1],[F.D4,7,1]]
+      .forEach(([f, bt, du]) => nt(f, bt, du, 'triangle', 0.13));
+
+    // --- PHRASE B melody (beats 8–15): rises and intensifies ---
+    [[F.G4,8,0.5],[F.Bb4,8.5,0.5],[F.D5,9,1],[F.Bb4,10,0.5],[F.G4,10.5,0.5],[F.A4,11,1],
+     [F.A4,12,0.5],[F.C5,12.5,0.5],[F.E5,13,1],[F.D5,14,0.5],[F.Cs5,14.5,0.5],[F.A4,15,1]]
+      .forEach(([f, bt, du]) => nt(f, bt, du, 'square', 0.11));
+    // soft harmony underneath phrase B for thickness
+    [[F.D4,9,1],[F.A4,13,1]].forEach(([f, bt, du]) => nt(f, bt, du, 'square', 0.05));
+
+    // --- DRUMS ---
+    const kick = (bt, vol) => {
+      const t = startT + bt * b;
+      const osc = audioCtx.createOscillator();
+      const kg = audioCtx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(155, t);
+      osc.frequency.exponentialRampToValueAtTime(35, t + 0.13);
+      kg.gain.setValueAtTime(vol, t);
+      kg.gain.exponentialRampToValueAtTime(0.001, t + 0.15);
+      osc.connect(kg); kg.connect(out);
+      osc.start(t); osc.stop(t + 0.17);
+    };
+    // Phrase A: heavy half-time march + soft hats
+    [0, 2, 4, 6].forEach(bt => kick(bt, 0.26));
+    for (let bt = 0; bt < 8; bt += 1) playNoise(0.02, 0.03, startT + bt * b, out);
+    // Phrase B: kick on every beat, snare backbeat, busier hats — the escalation
+    for (let bt = 8; bt < 16; bt++) kick(bt, 0.24);
+    [9, 11, 13, 15].forEach(bt => { playNoise(0.10, 0.12, startT + bt * b, out); nt(220, bt, 0.05, 'triangle', 0.08); });
+    for (let bt = 8; bt < 16; bt += 0.5) playNoise(0.016, 0.04, startT + bt * b, out);
+    // Crash + kick fill rolling back into the loop
+    playNoise(0.28, 0.13, startT + 15.5 * b, out);
+    kick(15.5, 0.28);
+  });
+}
+
+// ---- DEFEAT: slow mournful Am loop ----
+function playSomberMusic() {
+  if (!audioCtx) return;
+  const out = newSongGain(0.22, 1.0);
+  const bpm = 72;
+  const step = 60 / bpm / 4;
+  const loopDur = step * 16 * 4;
+
+  loopSong(out, loopDur, (startT) => {
+    // Am → F → G → Em, descending mournful sine melody
+    const melody = [
+      [440, 0, 4], [392, 4, 2], [349.23, 6, 2], [329.63, 8, 4], [293.66, 12, 4],
+      [349.23, 16, 4], [392, 20, 2], [349.23, 22, 2], [329.63, 24, 4], [293.66, 28, 4],
+      [392, 32, 4], [440, 36, 2], [392, 38, 2], [349.23, 40, 4], [329.63, 44, 4],
+      [329.63, 48, 4], [293.66, 52, 2], [261.63, 54, 2], [246.94, 56, 4], [220, 60, 4],
+    ];
+    melody.forEach(([freq, s, dur]) => {
+      playTone(freq, step * dur * 0.85, 'sine', 0.18, startT + s * step, out);
+      playTone(freq * 0.5, step * dur * 0.9, 'triangle', 0.07, startT + s * step, out);
+    });
+    [[110, 0], [87.31, 16], [98, 32], [82.41, 48]].forEach(([freq, s]) => {
+      playTone(freq, step * 15, 'sine', 0.08, startT + s * step, out);
+    });
+  });
+}
+
+// ---- VICTORY: triumphant, soaring D-major theme. The world is saved. ----
+function playVictoryFanfare() {
+  if (!audioCtx) return;
+  const out = newSongGain(0.32, 0.2); // hits bright, no slow swell
+  const b = 60 / 132;                 // beat at 132bpm
+  const loopDur = b * 8;              // 8-beat loop
+
+  loopSong(out, loopDur, (startT) => {
+    // Soaring lead (square): [freq, beatOffset, beatDur]
+    const lead = [
+      [N.A4, 0, 0.5], [N.D5, 0.5, 0.5], [N.Fs5, 1, 1], [N.E5, 2, 0.5], [N.Fs5, 2.5, 0.5],
+      [N.A5, 3, 1], [N.G5, 4, 0.5], [N.Fs5, 4.5, 0.5], [N.E5, 5, 1],
+      [N.Fs5, 6, 0.5], [N.E5, 6.5, 0.5], [N.D5, 7, 1],
+    ];
+    lead.forEach(([f, bt, du]) => playTone(f, du * b * 0.9, 'square', 0.14, startT + bt * b, out));
+    // Octave bass (triangle) — D, G, A, D
+    [[N.D3, 0], [N.D3, 1], [N.G3, 2], [N.G3, 3], [N.A3, 4], [N.A3, 5], [N.D3, 6], [N.D3, 7]]
+      .forEach(([f, bt]) => {
+        playTone(f, b * 0.9, 'triangle', 0.12, startT + bt * b, out);
+        playTone(f / 2, b * 0.9, 'sine', 0.10, startT + bt * b, out);
+      });
+    // Sustained warm pad chords (sawtooth, soft): D, G, A, D
+    const pads = [[[N.D4,N.Fs4,N.A4],0],[[N.G4,N.B4,N.D5],2],[[N.A4,N.E5,N.Fs5],4],[[N.D4,N.Fs4,N.A4],6]];
+    pads.forEach(([chord, bt]) => chord.forEach(f =>
+      playTone(f, b * 2 * 0.95, 'sawtooth', 0.028, startT + bt * b, out)));
+    // Bright bell accent on the downbeat
+    playTone(N.D5 * 2, b * 0.4, 'sine', 0.06, startT, out);
+  });
 }
 
 // ============================================================
@@ -763,274 +966,313 @@ function showStartScreen() {
 }
 
 // ============================================================
-// SCENE: INTRO
+// SCENE: OPENING (MEADOW CINEMATIC + HYBRID SELECTION)
 // ============================================================
-async function runIntro() {
-  clearScene();
-  const scene = el('div', { className: 'scene active', style: { background: '#000' } });
-  sceneEl().appendChild(scene);
 
-  // Line 1
-  const line1 = el('div', { className: 'fade-text', textContent: 'The world was at peace...' });
-  scene.appendChild(line1);
-  await wait(300);
-  line1.classList.add('visible');
-  await wait(2500);
-
-  // Line 2
-  const line2 = el('div', { className: 'fade-text dramatic', textContent: "Until it wasn't." });
-  scene.appendChild(line2);
-  await wait(300);
-  line2.classList.add('visible');
-  await wait(2000);
-
-  // Shake + clear text
-  screenShake('large', 1200);
-  playBassHit();
-  await wait(600);
-  await fadeOutElement(line1, 400);
-  await fadeOutElement(line2, 400);
-  line1.remove(); line2.remove();
-  await wait(500);
-
-  // Legendary silhouettes
-  const container = el('div', { className: 'legendary-container' });
-  scene.appendChild(container);
-
-  for (const legend of LEGENDARIES) {
-    const wrapper = el('div', { className: 'legendary' }, [
-      el('img', { src: spriteUrl(legend.id), alt: legend.name })
-    ]);
-    container.appendChild(wrapper);
-    await wait(200);
-    flashScreen('rgba(100,150,255,0.6)', 300);
-    playBassHit();
-    screenShake('medium', 500);
-    wrapper.classList.add('revealed');
-    await wait(1300);
-  }
-
-  // Silence
-  await wait(2000);
-
-  // Clear legendaries
-  await fadeOutElement(container, 800);
-  container.remove();
-
-  // Oak
-  const oakContainer = el('div', { style: { textAlign: 'center', opacity: '0', transition: 'opacity 1.5s' } });
-  const oakText = el('div', { className: 'oak-text' }, [
-    el('div', { textContent: 'PROFESSOR OAK', style: { color: '#fff', fontSize: 'clamp(1.2rem, 2.5vw, 1.6rem)', marginBottom: '20px', letterSpacing: '3px' } }),
-    el('div', { textContent: '"The world needs you. You are our last hope."' })
-  ]);
-  oakContainer.appendChild(oakText);
-  const continueBtn = el('button', { className: 'btn', textContent: 'I understand' });
-  oakContainer.appendChild(continueBtn);
-  scene.appendChild(oakContainer);
-
-  await wait(100);
-  oakContainer.style.opacity = '1';
-  playConfirmSound();
-
-  await new Promise(resolve => continueBtn.addEventListener('click', () => {
+// Typed dialogue boxes, click to advance. Returns when all lines shown.
+async function playDialogue(parent, lines) {
+  const box = el('div', { className: 'dialogue-box' });
+  const speaker = el('div', { className: 'dialogue-speaker' });
+  const txt = el('div', { className: 'dialogue-text' });
+  const hint = el('div', { className: 'dialogue-hint', textContent: '▼ click to continue' });
+  box.append(speaker, txt, hint);
+  parent.appendChild(box);
+  await wait(50);
+  box.classList.add('visible');
+  for (const line of lines) {
+    speaker.textContent = line.who;
+    playConfirmSound();
+    await typeText(txt, line.text, 26);
+    await new Promise(res => {
+      const h = () => { document.removeEventListener('click', h); res(); };
+      document.addEventListener('click', h);
+    });
     playSelectSound();
-    resolve();
-  }));
-
-  await fadeOutElement(scene, 600);
+  }
+  box.classList.remove('visible');
+  await wait(400);
+  box.remove();
 }
 
-// ============================================================
-// SCENE: STARTER SELECTION
-// ============================================================
-async function runSelection() {
+async function runOpening() {
   clearScene();
-  const scene = el('div', { className: 'scene active', style: { background: 'linear-gradient(180deg, #050510 0%, #0a0a1a 100%)' } });
+  const scene = el('div', { className: 'scene active', style: { background: '#000' } });
+  let emberSpawner = null;   // interval that emits the burning-ground embers
 
-  const title = el('div', {
-    style: { fontSize: 'clamp(1rem, 2.5vw, 1.6rem)', color: '#ffd700', letterSpacing: '3px', marginBottom: '10px', marginTop: '20px', opacity: '0', transition: 'opacity 1s' },
-    textContent: 'CHOOSE YOUR PARTNER'
-  });
-  scene.appendChild(title);
+  // ---- Persistent meadow backdrop (stays mounted across all beats) ----
+  const meadow = el('div', { className: 'meadow-scene' }, [
+    el('div', { className: 'meadow-sky' }),
+    el('div', { className: 'meadow-sun' }),
+    el('div', { className: 'meadow-trees' }),
+    el('div', { className: 'meadow-grass' })
+  ]);
+  scene.appendChild(meadow);
 
-  const subtitle = el('div', {
-    style: { fontSize: 'clamp(0.7rem, 1.5vw, 0.9rem)', color: '#888', marginBottom: '20px', opacity: '0', transition: 'opacity 1s' },
-    textContent: 'Only one can stand against the darkness'
-  });
-  scene.appendChild(subtitle);
-
-  const container = el('div', { className: 'selection-container' });
-  scene.appendChild(container);
-
+  // ---- FX canvas overlay (meteors / protect shields) ----
+  const fxCanvas = el('canvas', { className: 'fx-canvas' });
+  scene.appendChild(fxCanvas);
   sceneEl().appendChild(scene);
-  await wait(100);
+
+  function resizeFX() {
+    const r = scene.getBoundingClientRect();
+    if (r.width > 0 && r.height > 0) { fxCanvas.width = r.width; fxCanvas.height = r.height; }
+  }
+  resizeFX();
+  const onResize = () => resizeFX();
+  window.addEventListener('resize', onResize);
+  const fxCtx = fxCanvas.getContext('2d');
+  let activeFX = [], fxRunning = false;
+  function addFX(effect) { effect._start = performance.now(); activeFX.push(effect); if (!fxRunning) loop(); }
+  function loop() {
+    fxRunning = true;
+    const now = performance.now();
+    fxCtx.clearRect(0, 0, fxCanvas.width, fxCanvas.height);
+    activeFX = activeFX.filter(e => {
+      const t = (now - e._start) / e.duration;
+      if (t >= 1) return false;
+      e.draw(fxCtx, t, fxCanvas.width, fxCanvas.height);
+      return true;
+    });
+    if (activeFX.length > 0) requestAnimationFrame(loop);
+    else { fxRunning = false; fxCtx.clearRect(0, 0, fxCanvas.width, fxCanvas.height); }
+  }
+  // centre of a meadow element, in canvas coords
+  function centreOf(elm) {
+    const r = elm.getBoundingClientRect(), s = scene.getBoundingClientRect();
+    return [r.left - s.left + r.width / 2, r.top - s.top + r.height / 2];
+  }
+
+  await fadeInElement(scene, 800);
+
+  // ---- Populate the meadow: legendaries + small critters, all frolicking ----
+  // Depth-aware positions: large powerful Pokémon lower (foreground), smaller ones higher (background)
+  const legendPos = [
+    { left: '12%', bottom: '6%'  },  // Dragonite  — foreground left
+    { left: '76%', bottom: '4%'  },  // Tyranitar  — foreground right
+    { left: '44%', bottom: '14%' },  // Salamence  — mid-distance center
+    { left: '62%', bottom: '22%' },  // Garchomp   — background right
+    { left: '24%', bottom: '24%' },  // Pidgeot    — background left
+  ];
+  const meadowMons = [];
+  LEGENDARIES.forEach((lg, i) => {
+    const m = el('div', { className: 'meadow-mon frolic', style: {
+      left: legendPos[i % legendPos.length].left, bottom: legendPos[i % legendPos.length].bottom,
+      animationDelay: (i * 0.4) + 's', opacity: '0'
+    }}, [ el('img', { src: animUrl(lg.id), alt: lg.name, style: { height: MEADOW_HEIGHTS[lg.id] || 'clamp(40px,6vw,60px)', width: 'auto' } }) ]);
+    meadow.appendChild(m);
+    meadowMons.push(m);
+    setTimeout(() => { m.style.opacity = '1'; }, 200 + i * 150);
+  });
+  const fleeePos = [{ left: '36%', bottom: '30%' }, { left: '55%', bottom: '32%' }, { left: '18%', bottom: '28%' }];
+  FLEE_POKEMON.forEach((pid, i) => {
+    const m = el('div', { className: 'meadow-mon frolic', style: {
+      left: fleeePos[i].left, bottom: fleeePos[i].bottom, animationDelay: (i * 0.3 + 0.2) + 's', opacity: '0'
+    }}, [ el('img', { src: animUrl(pid), style: { height: MEADOW_HEIGHTS[pid] || 'clamp(32px,5vw,50px)', width: 'auto' } }) ]);
+    meadow.appendChild(m);
+    meadowMons.push(m);
+    setTimeout(() => { m.style.opacity = '1'; }, 400 + i * 120);
+  });
+
+  // ===== BEAT 1: PEACE — let it breathe; the Pokémon frolic, happy =====
+  playPeacefulMeadowMusic();
+  const title = el('div', { className: 'meadow-title', textContent: 'The world was at peace.' });
+  scene.appendChild(title);
+  await wait(1000);
   title.style.opacity = '1';
-  await wait(300);
-  subtitle.style.opacity = '1';
+  await wait(4800);          // long, calm hold — soak in the peaceful theme
+  title.style.opacity = '0';
+  await wait(1800);          // linger on the meadow before anything changes
+  title.remove();
 
-  const keys = ['charizard', 'rayquaza', 'pikachu'];
-  const cards = [];
+  // ===== BEAT 2: DOOM BUILDUP — silence, then a low rumble of dread =====
+  stopMusic(0.8);            // peaceful fades out…
+  await wait(900);           // …into a moment of near-silence
 
-  return new Promise(resolve => {
-    keys.forEach((key, idx) => {
-      const data = STARTERS_DATA[key];
-      const moveList = data.moves.map(m => {
+  // A low bass rumble swells under a slowly darkening sky (rumble is SFX,
+  // so it fills the gap without any music underneath).
+  playRumble(4.5);
+  meadow.classList.add('dark');
+  screenShake('small', 2400);
+  await wait(1700);          // dread builds — slow, ominous, "Doom"
+
+  // Mewtwo descends out of the dark
+  const glow = el('div', { className: 'mewtwo-glow', style: { top: '24%', left: '50%' } });
+  scene.appendChild(glow);
+  await wait(150);
+  glow.style.opacity = '1';
+  const mew = el('div', { className: 'meadow-mon', style: {
+    left: '50%', top: '8%', transform: 'translateX(-50%)', opacity: '0', zIndex: '12'
+  }}, [ el('img', { src: artUrl(150), style: { height: MEADOW_HEIGHTS[150], width: 'auto', filter: 'drop-shadow(0 0 28px rgba(160,60,255,0.95)) drop-shadow(0 0 50px rgba(140,40,240,0.5))', imageRendering: 'auto', animation: 'idleBob 2.2s ease-in-out infinite' } }) ]);
+  scene.appendChild(mew);
+  await wait(600);
+  mew.style.opacity = '1';
+
+  // BOOM — Mewtwo strikes, and only NOW does the ominous theme rise
+  flashScreen('rgba(160,60,255,0.5)', 600);
+  playBassHit();
+  await wait(350);
+  playOminousMusic();        // ominous music comes in after the first blow
+  await wait(750);
+
+  const W = fxCanvas.width, H = fxCanvas.height;
+  for (let i = 0; i < 7; i++) {
+    const tx = W * (0.12 + Math.random() * 0.76);
+    const ty = H * (0.6 + Math.random() * 0.3);
+    addFX(fxDracoMeteor(tx, ty));
+    await wait(300);
+    addFX(fxExplosion(tx, ty, '#ff6a2a', 90 + Math.random() * 40)); // halo ring
+    addFX(fxFireBurst(tx, ty, 90));
+    addFX(fxSparkles(tx, ty, '#ffcc55')); // fiery sparkle pop off the meteor
+    screenShake(i % 2 ? 'medium' : 'small', 350);
+    flashScreen('rgba(255,120,40,0.35)', 200);
+    playHitSound(1);
+  }
+  await wait(400);
+
+  // ===== BEAT 3: DEFENSE — large Pokémon raise group Protect shields over nearby smaller ones =====
+  meadowMons.forEach(m => { m.classList.remove('frolic'); m.classList.add('cower'); });
+
+  // Separate into leaders (large, first 5) and wards (small, last 3)
+  const leaders = meadowMons.slice(0, LEGENDARIES.length);
+  const wards   = meadowMons.slice(LEGENDARIES.length);
+
+  // Assign each ward to its nearest leader by canvas-space distance
+  const groups = leaders.map(lm => ({ leader: lm, members: [lm] }));
+  wards.forEach(sm => {
+    const [sx, sy] = centreOf(sm);
+    let best = groups[0], bestD = Infinity;
+    groups.forEach(g => {
+      const [lx, ly] = centreOf(g.leader);
+      const d = Math.hypot(sx - lx, sy - ly);
+      if (d < bestD) { bestD = d; best = g; }
+    });
+    best.members.push(sm);
+  });
+
+  // One encompassing Protect dome per group
+  groups.forEach(g => {
+    const pts = g.members.map(m => centreOf(m));
+    const gcx = pts.reduce((a, [x]) => a + x, 0) / pts.length;
+    const gcy = pts.reduce((a, [, y]) => a + y, 0) / pts.length;
+    const r = Math.max(...pts.map(([x, y]) => Math.hypot(x - gcx, y - gcy))) + 60;
+    addFX(fxProtect(gcx, gcy, Math.max(70, r)));
+  });
+  playRumble(2);
+  await wait(700);
+  meadow.classList.add('scorched');
+  // No static fire bar — the ground scorches and fiery sparkles flare across it
+  for (let i = 0; i < 4; i++) {
+    const fx = W * (0.15 + Math.random() * 0.7), fy = H * (0.8 + Math.random() * 0.14);
+    addFX(fxExplosion(fx, fy, '#ff8a2a', 70));
+    addFX(fxSparkles(fx, fy, '#ffcc55'));
+    await wait(170);
+  }
+
+  // ---- Subtle embers drifting up from the burning ground ----
+  // Tiny flickering sparks rise a short way and fade. Sparse background
+  // ambiance from here through Oak's lines and champion selection; stops
+  // when a champion is chosen and the scene fades to battle.
+  function spawnEmber() {
+    const dur = 2.6 + Math.random() * 2.2;                 // 2.6–4.8s drift
+    const size = 2 + Math.random() * 2.5;                  // 2–4.5px
+    const e = el('div', { className: 'meadow-ember', style: {
+      left: (4 + Math.random() * 92) + '%',
+      bottom: (2 + Math.random() * 26) + '%',              // low — out of the ground
+      width: size + 'px', height: size + 'px',
+      animationDuration: dur.toFixed(2) + 's'
+    }});
+    e.style.setProperty('--rise', (-(14 + Math.random() * 14)).toFixed(1) + 'vh'); // 14–28vh up
+    e.style.setProperty('--drift', (((Math.random() * 2 - 1) * (8 + Math.random() * 14))).toFixed(1) + 'px');
+    meadow.appendChild(e);
+    setTimeout(() => e.remove(), dur * 1000 + 120);
+  }
+  emberSpawner = setInterval(spawnEmber, 400);             // sparse — a few on screen at once
+  for (let i = 0; i < 4; i++) spawnEmber();                // seed a few immediately
+
+  await wait(1000);
+
+  // ===== BEAT 4: OAK — camera settles, dialogue to camera =====
+  meadow.style.transform = 'scale(1.12)';
+  // fade out the looming Mewtwo + glow so focus is on Oak's words
+  mew.style.transition = 'opacity 1s'; mew.style.opacity = '0.15';
+  glow.style.opacity = '0';
+  await wait(600);
+  await playDialogue(scene, [
+    { who: 'PROFESSOR OAK', text: "Mewtwo has gone rogue. Not even the strongest Pokémon in the world can stop it." },
+    { who: 'PROFESSOR OAK', text: "They're protecting each other — but they won't hold forever. The meadow is already burning." },
+    { who: 'PROFESSOR OAK', text: "You're the last hope. Choose your champion, and face what they cannot." }
+  ]);
+
+  // ===== BEAT 5: HYBRID SELECTION — heroes alive in the meadow =====
+  meadow.style.transform = '';
+  mew.remove();
+  // Clear the other Pokemon off-screen so only the hero candidates remain
+  meadowMons.forEach(m => {
+    m.style.transition = 'opacity 0.6s, transform 0.6s';
+    m.style.opacity = '0';
+    m.style.transform = 'translateY(24px)';
+    setTimeout(() => m.remove(), 700);
+  });
+  await wait(500);
+  const prompt = el('div', { className: 'meadow-title', textContent: 'Choose your champion', style: { top: '8%' } });
+  scene.appendChild(prompt);
+  await wait(100);
+  prompt.style.opacity = '1';
+
+  const heroKeys = ['charizard', 'rayquaza', 'pikachu'];
+  const heroPos = [ { left: '24%' }, { left: '50%' }, { left: '76%' } ];
+  const card = el('div', { className: 'hero-card' });
+  scene.appendChild(card);
+
+  return await new Promise(resolve => {
+    function showCard(key) {
+      const d = STARTERS_DATA[key];
+      const moveList = d.moves.map(m => {
         let info = `${m.name} (${m.type.toUpperCase()} ${m.power})`;
         if (m.recoil) info += ' [recoil]';
         if (m.priority) info += ' [priority]';
         if (m.accuracy < 100) info += ` [${m.accuracy}%]`;
         return info;
       }).join('<br>');
-
-      const card = el('div', { className: 'starter-card', style: { opacity: '0', transition: 'all 0.6s ease', transitionDelay: `${idx * 0.2}s` } }, [
-        el('img', { src: artUrl(data.id), alt: data.name }),
-        el('div', { className: 'starter-name', textContent: data.name }),
-        el('div', { className: 'starter-types' },
-          data.types.map(t => el('span', { className: `type-badge type-${t}`, textContent: t }))
-        ),
-        el('div', { className: 'hp-stat', textContent: `HP: ${data.maxHp}` }),
-        el('div', { className: 'move-list', innerHTML: moveList })
+      card.innerHTML = '';
+      card.append(
+        el('img', { src: artUrl(d.id), alt: d.name }),
+        el('div', { className: 'starter-name', textContent: d.name }),
+        el('div', { className: 'starter-types' }, d.types.map(t => el('span', { className: `type-badge type-${t}`, textContent: t }))),
+        el('div', { className: 'hp-stat', textContent: `HP: ${d.maxHp}` }),
+        el('div', { className: 'move-list', innerHTML: moveList }),
+        el('button', { className: 'btn', textContent: 'CHOOSE ' + d.name, style: { display: 'block', margin: '16px auto 0' },
+          onClick: async () => {
+            playSelectSound();
+            flashScreen('rgba(255,215,0,0.5)', 400);
+            screenShake('small', 300);
+            card.classList.remove('visible');
+            if (emberSpawner) { clearInterval(emberSpawner); emberSpawner = null; }
+            window.removeEventListener('resize', onResize);
+            await fadeOutElement(scene, 700);
+            resolve(key);
+          }
+        }),
+        el('button', { className: 'btn', textContent: 'Back', style: { display: 'block', margin: '8px auto 0', padding: '8px 24px', borderColor: '#888', color: '#888' },
+          onClick: () => { card.classList.remove('visible'); }
+        })
+      );
+      card.classList.add('visible');
+    }
+    heroKeys.forEach((key, i) => {
+      const d = STARTERS_DATA[key];
+      const h = el('div', { className: 'meadow-mon hero-pick frolic', style: {
+        left: heroPos[i].left, bottom: '14%', animationDelay: (i * 0.35) + 's', opacity: '0'
+      }}, [
+        el('img', { src: animUrl(d.id), alt: d.name }),
+        el('div', { className: 'hero-glow' }),
+        el('div', { className: 'hero-label', textContent: d.name })
       ]);
-
-      card.addEventListener('click', async () => {
-        playSelectSound();
-        flashScreen('rgba(255,215,0,0.5)', 400);
-        screenShake('small', 300);
-        card.classList.add('selected');
-
-        cards.forEach((c, i) => {
-          if (i !== idx) c.classList.add('dismissed');
-        });
-
-        await wait(1200);
-        await fadeOutElement(scene, 600);
-        resolve(key);
-      });
-
-      container.appendChild(card);
-      cards.push(card);
-
-      setTimeout(() => { card.style.opacity = '1'; }, 100);
+      h.addEventListener('click', () => { playSelectSound(); showCard(key); });
+      scene.appendChild(h);
+      setTimeout(() => { h.style.opacity = '1'; }, 200 + i * 160);
     });
   });
-}
-
-// ============================================================
-// SCENE: MEWTWO ENTRANCE
-// ============================================================
-async function runEntrance() {
-  clearScene();
-  const scene = el('div', { className: 'scene active entrance-scene' });
-  sceneEl().appendChild(scene);
-
-  // Black screen + rumble
-  await wait(500);
-  playRumble(3.5);
-  screenShake('small', 3500);
-
-  // Build city
-  const cityContainer = el('div', { className: 'city-container' });
-  scene.appendChild(cityContainer);
-  const buildings = [];
-  const bCount = 12;
-  for (let i = 0; i < bCount; i++) {
-    const h = 60 + Math.random() * 120;
-    const w = 30 + Math.random() * 50;
-    const b = el('div', { className: 'building', style: {
-      width: w + 'px', height: h + 'px',
-      left: (i / bCount * 100) + '%',
-      background: `linear-gradient(180deg, #1a1a2e, #0d0d1a)`,
-      borderColor: '#333'
-    }});
-    // Windows
-    for (let row = 0; row < Math.floor(h / 25); row++) {
-      for (let col = 0; col < Math.floor(w / 18); col++) {
-        const win = el('div', { style: {
-          position: 'absolute',
-          width: '6px', height: '8px',
-          background: Math.random() > 0.3 ? '#ffee88' : '#333',
-          left: (8 + col * 18) + 'px',
-          top: (10 + row * 25) + 'px',
-          opacity: '0.7'
-        }});
-        b.appendChild(win);
-      }
-    }
-    cityContainer.appendChild(b);
-    buildings.push(b);
-  }
-
-  await wait(1500);
-
-  // Buildings crumble
-  for (let i = 0; i < buildings.length; i++) {
-    setTimeout(() => {
-      buildings[i].classList.add('crumble');
-      if (i % 3 === 0) {
-        screenShake('medium', 400);
-        playHitSound(0.5);
-      }
-    }, i * 200 + Math.random() * 300);
-  }
-
-  // Fire
-  const fireContainer = el('div', { className: 'fire-container' });
-  const fireBar = el('div', { className: 'fire-bar' });
-  fireContainer.appendChild(fireBar);
-  scene.appendChild(fireContainer);
-  await wait(800);
-  fireBar.classList.add('active');
-
-  // Fleeing Pokemon
-  for (let wave = 0; wave < 3; wave++) {
-    for (const pid of FLEE_POKEMON) {
-      const fleePoke = el('div', { className: 'flee-pokemon', style: {
-        bottom: (80 + Math.random() * 60) + 'px',
-        animation: `flee ${1.5 + Math.random()}s linear forwards`,
-        animationDelay: `${wave * 0.8 + Math.random() * 0.5}s`
-      }}, [el('img', { src: spriteUrl(pid) })]);
-      scene.appendChild(fleePoke);
-    }
-  }
-
-  await wait(3500);
-  screenShake('large', 1000);
-  await wait(1500);
-
-  // Silence - stop shaking, fade fire
-  fireBar.classList.remove('active');
-  await wait(1500);
-
-  // Purple glow
-  const glow = el('div', { className: 'mewtwo-glow' });
-  scene.appendChild(glow);
-  await wait(200);
-  glow.style.opacity = '1';
-  await wait(1000);
-
-  // Mewtwo sprite
-  const mewtwoSprite = el('div', { className: 'mewtwo-entrance-sprite' }, [
-    el('img', { src: artUrl(150) })
-  ]);
-  scene.appendChild(mewtwoSprite);
-  await wait(500);
-  mewtwoSprite.style.opacity = '1';
-  flashScreen('rgba(160,60,255,0.5)', 600);
-  screenShake('medium', 600);
-  playBassHit();
-  await wait(1500);
-
-  // Text
-  const txt = el('div', { className: 'entrance-text', textContent: 'MEWTWO has descended.' });
-  scene.appendChild(txt);
-  await wait(300);
-  txt.style.opacity = '1';
-  await wait(2000);
-
-  // Start battle music
-  startBattleMusic();
-  await wait(1000);
-  await fadeOutElement(scene, 800);
 }
 
 // ============================================================
@@ -1342,6 +1584,66 @@ function fxMultiHit(cx, cy, color, hits=3) {
   }};
 }
 
+// Draco Meteor — a single draconic fireball streaking from above the canvas
+// down to (tx,ty), with a glowing tail. Compose several (staggered) + an
+// fxExplosion/fxFireBurst at the impact point for the full meteor shower.
+function fxDracoMeteor(tx, ty, fromX) {
+  const sx = fromX !== undefined ? fromX : tx + (Math.random()-0.5)*200;
+  const sy = -60;
+  return { duration: 650, draw(ctx, t) {
+    const x = sx + (tx - sx) * t;
+    const y = sy + (ty - sy) * t;
+    const al = t < 0.85 ? 1 : (1 - t) * 6.7;
+    // Tail
+    for (let i = 1; i <= 10; i++) {
+      const tt = Math.max(0, t - i * 0.03);
+      const tx2 = sx + (tx - sx) * tt, ty2 = sy + (ty - sy) * tt;
+      ctx.globalAlpha = al * (1 - i / 10) * 0.5;
+      ctx.fillStyle = i < 4 ? '#ffcc66' : '#bf5fff';
+      ctx.beginPath(); ctx.arc(tx2, ty2, 14 * (1 - i * 0.07), 0, Math.PI*2); ctx.fill();
+    }
+    // Glow
+    const grd = ctx.createRadialGradient(x, y, 0, x, y, 38);
+    grd.addColorStop(0, 'rgba(255,200,120,0.9)');
+    grd.addColorStop(0.4, 'rgba(160,60,255,0.5)');
+    grd.addColorStop(1, 'rgba(160,60,255,0)');
+    ctx.globalAlpha = al * 0.7; ctx.fillStyle = grd;
+    ctx.beginPath(); ctx.arc(x, y, 38, 0, Math.PI*2); ctx.fill();
+    // Core
+    ctx.globalAlpha = al; ctx.fillStyle = '#ffe9b0';
+    ctx.beginPath(); ctx.arc(x, y, 12, 0, Math.PI*2); ctx.fill();
+    ctx.fillStyle = '#fff';
+    ctx.beginPath(); ctx.arc(x, y, 5, 0, Math.PI*2); ctx.fill();
+    ctx.globalAlpha = 1;
+  }};
+}
+
+// Protect — a shimmering translucent shield dome around (cx,cy).
+// Fades in, holds, fades out; hex shimmer ring for the energy-barrier look.
+function fxProtect(cx, cy, radius=70, color='#66e0ff') {
+  return { duration: 1600, draw(ctx, t) {
+    const al = t < 0.18 ? t / 0.18 : t > 0.7 ? (1 - t) / 0.3 : 1;
+    const a = Math.max(0, al);
+    // Dome fill
+    const grd = ctx.createRadialGradient(cx, cy, radius*0.2, cx, cy, radius);
+    grd.addColorStop(0, color + '11');
+    grd.addColorStop(0.75, color + '33');
+    grd.addColorStop(1, color + '66');
+    ctx.globalAlpha = a * 0.7; ctx.fillStyle = grd;
+    ctx.beginPath(); ctx.arc(cx, cy, radius, 0, Math.PI*2); ctx.fill();
+    // Rim
+    ctx.globalAlpha = a; ctx.strokeStyle = color; ctx.lineWidth = 2.5;
+    ctx.beginPath(); ctx.arc(cx, cy, radius, 0, Math.PI*2); ctx.stroke();
+    // Rotating hex shimmer — a couple of bright arcs sweeping the rim
+    for (let i = 0; i < 2; i++) {
+      const a0 = t * Math.PI * 4 + i * Math.PI;
+      ctx.globalAlpha = a * 0.8; ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 3;
+      ctx.beginPath(); ctx.arc(cx, cy, radius, a0, a0 + Math.PI*0.25); ctx.stroke();
+    }
+    ctx.globalAlpha = 1;
+  }};
+}
+
 // Poke Ball drawing helpers
 function drawPokeball(ctx, x, y, r) {
   // Red top
@@ -1466,185 +1768,249 @@ function fxRecallBeam(fromX, fromY, toX, toY) {
 
 // Move-specific animation sequences
 const MOVE_ANIMS = {
+  // Fire column erupts FROM BELOW target — no beam, stacked bursts go upward
   'Blast Burn': async (addFX, w, h, isP) => {
     const [sx,sy,tx,ty] = isP ? [w*.2,h*.65,w*.75,h*.25] : [w*.8,h*.3,w*.25,h*.7];
-    addFX(fxScreenDarken(0.5));
-    await wait(250);
-    addFX(fxChargeGlow(sx,sy,'#ff4400'));
-    await wait(350);
-    addFX(fxBeam(sx,sy,tx,ty,'#ff4400',28));
-    await wait(250);
-    addFX(fxFireBurst(tx,ty,160));
-    addFX(fxExplosion(tx,ty,'#ff6600',140));
-    screenShake('large',900); flashScreen('#ff4400',450);
-    await wait(700);
+    addFX(fxScreenDarken(0.6));
+    await wait(300);
+    addFX(fxChargeGlow(sx,sy,'#cc2200'));
+    await wait(400);
+    addFX(fxExplosion(tx,ty,'#ff4400',40));
+    addFX(fxFireBurst(tx,ty,120));
+    addFX(fxFireBurst(tx,ty-30,100));
+    addFX(fxFireBurst(tx,ty-60,80));
+    addFX(fxExplosion(tx,ty,'#ffcc00',160));
+    screenShake('large',1000); flashScreen('#ff3300',500);
+    await wait(800);
   },
+  // Attacker engulfed in flames charges INTO target — shake fires WITH beam
   'Flare Blitz': async (addFX, w, h, isP) => {
     const [sx,sy,tx,ty] = isP ? [w*.2,h*.65,w*.75,h*.25] : [w*.8,h*.3,w*.25,h*.7];
     addFX(fxChargeGlow(sx,sy,'#ff6600'));
+    await wait(150);
+    addFX(fxFireBurst(sx,sy,55));
+    addFX(fxBeam(sx,sy,tx,ty,'#ff6600',22));
+    screenShake('medium',400);
     await wait(200);
-    addFX(fxBeam(sx,sy,tx,ty,'#ff6600',20));
-    addFX(fxFireBurst(sx,sy,60));
+    addFX(fxExplosion(tx,ty,'#ff4400',130));
+    addFX(fxFireBurst(tx,ty,110));
+    flashScreen('#ff6600',350);
     await wait(250);
-    addFX(fxExplosion(tx,ty,'#ff4400',110));
-    addFX(fxFireBurst(tx,ty,100));
-    screenShake('medium',600); flashScreen('#ff6600',350);
-    await wait(550);
+    addFX(fxSparkles(sx,sy,'#ff8800'));
+    await wait(300);
   },
+  // Teal→purple pulsing orb; fxPsychicWaves at impact is the signature
   'Dragon Pulse': async (addFX, w, h, isP) => {
     const [sx,sy,tx,ty] = isP ? [w*.2,h*.65,w*.75,h*.25] : [w*.8,h*.3,w*.25,h*.7];
-    addFX(fxChargeGlow(sx,sy,'#7038f8'));
-    await wait(250);
-    addFX(fxEnergyBall(sx,sy,tx,ty,'#7038f8',28));
-    await wait(450);
-    addFX(fxExplosion(tx,ty,'#9060ff',100));
-    addFX(fxPsychicWaves(tx,ty,'#7038f8'));
-    screenShake('small',400); flashScreen('#7038f8',280);
-    await wait(400);
+    addFX(fxChargeGlow(sx,sy,'#2299aa'));
+    await wait(280);
+    addFX(fxEnergyBall(sx,sy,tx,ty,'#2299aa',30));
+    await wait(420);
+    addFX(fxPsychicWaves(tx,ty,'#4488cc'));
+    addFX(fxExplosion(tx,ty,'#7038f8',95));
+    screenShake('small',380); flashScreen('#4488cc',240);
+    await wait(380);
   },
+  // Three rapid crescent air blades — no charge, staccato and fast
   'Air Slash': async (addFX, w, h, isP) => {
     const [sx,sy,tx,ty] = isP ? [w*.2,h*.65,w*.75,h*.25] : [w*.8,h*.3,w*.25,h*.7];
-    addFX(fxSlash(sx,sy-20,tx+20,ty+30,'#bbbbff'));
-    await wait(120);
-    addFX(fxSlash(sx+15,sy+15,tx-15,ty-20,'#ddddff'));
-    await wait(180);
-    addFX(fxExplosion(tx,ty,'#aaaaee',75));
-    screenShake('small',300); flashScreen('#ccccff',200);
-    await wait(300);
+    addFX(fxSlash(sx,sy-15,tx+15,ty+20,'#bbddff'));
+    await wait(90);
+    addFX(fxSlash(sx+12,sy+8,tx-8,ty-15,'#ddeeff'));
+    await wait(90);
+    addFX(fxSlash(sx+5,sy-5,tx,ty,'#ffffff'));
+    await wait(80);
+    addFX(fxExplosion(tx,ty,'#aaccee',65));
+    screenShake('small',280); flashScreen('#ccddff',180);
+    await wait(280);
   },
+  // Ascend upward off-screen → sky goes white → crash DOWN from above
   'Dragon Ascent': async (addFX, w, h, isP) => {
     const [sx,sy,tx,ty] = isP ? [w*.2,h*.65,w*.75,h*.25] : [w*.8,h*.3,w*.25,h*.7];
-    addFX(fxScreenDarken(0.35));
-    addFX(fxChargeGlow(sx,sy,'#00ddff'));
-    await wait(400);
-    addFX(fxBeam(sx,sy-60,tx,ty,'#00ccff',22));
+    addFX(fxScreenDarken(0.4));
+    addFX(fxChargeGlow(sx,sy,'#00aaff'));
     await wait(300);
-    addFX(fxExplosion(tx,ty,'#00ddff',130));
-    addFX(fxFireBurst(tx,ty,90));
-    screenShake('large',700); flashScreen('#00ccff',400);
-    await wait(500);
+    addFX(fxBeam(sx,sy,sx,-80,'#00ccff',14));
+    await wait(200);
+    flashScreen('#ffffff',400);
+    await wait(400);
+    addFX(fxBeam(tx,-60,tx,ty,'#00ccff',18));
+    await wait(200);
+    addFX(fxExplosion(tx,ty,'#ffffff',170));
+    addFX(fxExplosion(tx,ty,'#00ddff',140));
+    addFX(fxFireBurst(tx,ty,100));
+    screenShake('large',800); flashScreen('#00ccff',400);
+    await wait(700);
   },
+  // Chaotic scattered multi-hit rage — 4 manual offset hits, confusion sparks at end
   'Outrage': async (addFX, w, h, isP) => {
     const [sx,sy,tx,ty] = isP ? [w*.2,h*.65,w*.75,h*.25] : [w*.8,h*.3,w*.25,h*.7];
-    addFX(fxScreenDarken(0.35));
+    addFX(fxScreenDarken(0.4)); addFX(fxChargeGlow(sx,sy,'#cc2244'));
+    await wait(250);
+    addFX(fxMultiHit(tx,ty,'#cc2244',1)); screenShake('medium',250); flashScreen('#ff2244',100);
     await wait(200);
-    addFX(fxMultiHit(tx,ty,'#9040ff',3));
-    for (let i=0;i<3;i++) {
-      screenShake('medium',300); flashScreen('#7038f8',120);
-      await wait(250);
-    }
-    addFX(fxExplosion(tx,ty,'#ff4488',120));
-    screenShake('large',600); flashScreen('#ff2266',350);
-    await wait(450);
+    addFX(fxMultiHit(tx+20,ty-10,'#aa33ff',1)); screenShake('medium',250); flashScreen('#cc2244',100);
+    await wait(200);
+    addFX(fxMultiHit(tx-15,ty+10,'#cc2244',1)); screenShake('medium',250); flashScreen('#ff2244',100);
+    await wait(200);
+    addFX(fxExplosion(tx,ty,'#ff2244',140)); addFX(fxSparkles(tx,ty,'#aa44ff'));
+    addFX(fxSparkles(sx,sy,'#ffff66'));
+    screenShake('large',600); flashScreen('#ff2244',350);
+    await wait(500);
   },
+  // Vanishes in a white blur — total ~300ms, no charge, just afterimage
   'Extreme Speed': async (addFX, w, h, isP) => {
     const [sx,sy,tx,ty] = isP ? [w*.2,h*.65,w*.75,h*.25] : [w*.8,h*.3,w*.25,h*.7];
-    addFX(fxBeam(sx,sy,tx,ty,'#ffffff',14));
-    await wait(120);
-    addFX(fxExplosion(tx,ty,'#ffffff',85));
-    screenShake('small',350); flashScreen('#ffffff',220);
-    await wait(300);
+    addFX(fxBeam(sx,sy,tx,ty,'#ffffff',10));
+    await wait(50);
+    addFX(fxBeam(sx+8,sy-5,tx+8,ty-5,'#eeeeee',6));
+    addFX(fxExplosion(tx,ty,'#ffffff',80));
+    screenShake('small',300); flashScreen('#ffffff',200);
+    await wait(250);
   },
+  // Deep dark → white-hot V eruption — hottest move, #ffffff core ring
   'V-Create': async (addFX, w, h, isP) => {
     const [sx,sy,tx,ty] = isP ? [w*.2,h*.65,w*.75,h*.25] : [w*.8,h*.3,w*.25,h*.7];
-    addFX(fxScreenDarken(0.55));
-    await wait(350);
-    addFX(fxChargeGlow(sx,sy,'#ff2200'));
-    await wait(250);
-    addFX(fxBeam(sx,sy,tx-25,ty,'#ff2200',16));
-    addFX(fxBeam(sx,sy,tx+25,ty,'#ff2200',16));
+    addFX(fxScreenDarken(0.75));
+    await wait(500);
+    addFX(fxChargeGlow(sx,sy,'#ff1100'));
     await wait(300);
-    addFX(fxFireBurst(tx,ty,190));
-    addFX(fxExplosion(tx,ty,'#ff4400',160));
-    screenShake('large',1100); flashScreen('#ff2200',550);
-    await wait(800);
+    addFX(fxBeam(sx,sy,tx,ty,'#ff2200',22));
+    addFX(fxBeam(sx,sy,tx-35,ty,'#ff4400',16));
+    addFX(fxBeam(sx,sy,tx+35,ty,'#ff4400',16));
+    await wait(300);
+    addFX(fxExplosion(tx,ty,'#ffffff',160));
+    addFX(fxExplosion(tx,ty,'#ff4400',210));
+    addFX(fxFireBurst(tx,ty,200));
+    screenShake('large',1200); flashScreen('#ff2200',600);
+    await wait(900);
   },
-  'Volt Tackle': async (addFX, w, h, isP) => {
-    const [sx,sy,tx,ty] = isP ? [w*.2,h*.65,w*.75,h*.25] : [w*.8,h*.3,w*.25,h*.7];
-    addFX(fxChargeGlow(sx,sy,'#ffdd00'));
+  // Electric-coated physical ram — lightning fires ALONGSIDE the beam
+  // Rising bolts converge into electric pillar that crashes down on target
+  'Rising Volt Tackle': async (addFX, w, h, isP) => {
+    const [sx,sy] = isP ? [w*.2,h*.65] : [w*.8,h*.3];
+    const [tx,ty] = isP ? [w*.75,h*.25] : [w*.25,h*.7];
+    addFX(fxChargeGlow(sx,sy,'#aaff44'));
+    addFX(fxScreenDarken(0.35));
+    await wait(500);
+    // Rising arcs surge upward from near attacker
+    addFX(fxLightning(sx-30, h*0.95, tx-15, 0, 3));
+    await wait(110);
+    addFX(fxLightning(sx,    h*0.95, tx,    0, 4));
+    await wait(110);
+    addFX(fxLightning(sx+30, h*0.95, tx+15, 0, 3));
+    flashScreen('#ccff44', 200);
     await wait(250);
-    addFX(fxBeam(sx,sy,tx,ty,'#ffee00',20));
-    addFX(fxLightning(sx,sy,tx,ty,2));
-    await wait(300);
-    addFX(fxExplosion(tx,ty,'#ffdd00',110));
-    screenShake('medium',550); flashScreen('#ffee00',400);
+    // Converged pillar crashes down on target
+    addFX(fxLightning(tx-15, 0, tx,    ty, 5));
+    addFX(fxLightning(tx,    0, tx,    ty, 5));
+    addFX(fxLightning(tx+15, 0, tx,    ty, 4));
+    screenShake('large', 500);
+    await wait(120);
+    addFX(fxExplosion(tx, ty, '#aaff00', 130));
+    addFX(fxSparkles(tx, ty, '#ccff66'));
+    flashScreen('#aaff00', 450);
     await wait(500);
   },
+  // Lightning crashes from TOP of screen — origin y=0, not player pos
   'Thunder': async (addFX, w, h, isP) => {
-    const tx = isP ? w*.75 : w*.25;
-    const ty = isP ? h*.25 : h*.7;
-    addFX(fxScreenDarken(0.55));
-    await wait(450);
-    addFX(fxLightning(tx-15,0,tx+15,ty,4));
-    flashScreen('#ffff00',250); screenShake('medium',450);
-    await wait(350);
-    addFX(fxLightning(tx+20,0,tx-10,ty,2));
+    const etx = isP ? w*.75 : w*.25, ety = isP ? h*.25 : h*.7;
+    addFX(fxScreenDarken(0.6));
+    await wait(500);
+    addFX(fxLightning(etx-10,0,etx,ety,5));
+    flashScreen('#ffff00',280); screenShake('medium',400);
+    await wait(300);
+    addFX(fxLightning(etx+25,0,etx-10,ety,3));
     flashScreen('#ffee00',180);
     await wait(250);
-    addFX(fxExplosion(tx,ty,'#ffdd00',110));
-    screenShake('large',600);
+    addFX(fxExplosion(etx,ety,'#ffdd00',120));
+    screenShake('large',550);
     await wait(500);
   },
-  'Surf': async (addFX, w, h, isP) => {
-    addFX(fxWave('#4488ff',isP));
-    screenShake('medium',700);
-    await wait(700);
-    const tx = isP ? w*.75 : w*.25, ty = isP ? h*.25 : h*.7;
-    addFX(fxExplosion(tx,ty,'#6699ff',90));
-    flashScreen('#4488ff',250);
+  // Glowing electric orb launched as a fast projectile — classic Pikachu anime signature
+  'Electro Ball': async (addFX, w, h, isP) => {
+    const [sx,sy] = isP ? [w*.2,h*.65] : [w*.8,h*.3];
+    const [tx,ty] = isP ? [w*.75,h*.25] : [w*.25,h*.7];
+    addFX(fxChargeGlow(sx,sy,'#ffff00'));
+    await wait(350);
+    addFX(fxEnergyBall(sx,sy,tx,ty,'#ffff00',26));
+    addFX(fxSparkles(sx,sy,'#ffffaa'));
+    await wait(480);
+    addFX(fxExplosion(tx,ty,'#ffee00',85));
+    addFX(fxLightning(tx-35,ty-35,tx,ty,3));
+    addFX(fxLightning(tx+35,ty-35,tx,ty,3));
+    addFX(fxLightning(tx-35,ty+20,tx,ty,2));
+    addFX(fxSparkles(tx,ty,'#ffff66'));
+    flashScreen('#ffee00',280);
+    screenShake('small',350);
     await wait(500);
   },
+  // Two heavy metallic tail slashes — slower than Air Slash, silver sparks
   'Iron Tail': async (addFX, w, h, isP) => {
     const [sx,sy,tx,ty] = isP ? [w*.2,h*.65,w*.75,h*.25] : [w*.8,h*.3,w*.25,h*.7];
     addFX(fxChargeGlow(sx,sy,'#ccccdd'));
-    await wait(220);
-    addFX(fxSlash(sx,sy-20,tx,ty+10,'#ddddee'));
-    await wait(250);
-    addFX(fxExplosion(tx,ty,'#aaaacc',90));
-    // Metallic sparks
-    addFX(fxFireBurst(tx,ty,60));
-    screenShake('medium',450); flashScreen('#ccccdd',250);
+    await wait(200);
+    addFX(fxSlash(sx,sy-10,tx,ty+15,'#ccccdd'));
+    await wait(160);
+    addFX(fxSlash(sx-10,sy+10,tx+10,ty-10,'#eeeeff'));
+    addFX(fxExplosion(tx,ty,'#aaaacc',95));
+    addFX(fxSparkles(tx,ty,'#ddddee'));
+    screenShake('medium',450); flashScreen('#ccccdd',260);
     await wait(400);
   },
+  // Psychic wave at src AND target — double ring is Psystrike's identity
   'Psystrike': async (addFX, w, h, isP) => {
     const [sx,sy,tx,ty] = isP ? [w*.2,h*.65,w*.75,h*.25] : [w*.8,h*.3,w*.25,h*.7];
-    addFX(fxScreenDarken(0.35));
-    addFX(fxChargeGlow(sx,sy,'#ff55aa'));
-    await wait(350);
-    addFX(fxPsychicWaves(sx,sy,'#ff55aa'));
-    await wait(200);
-    addFX(fxBeam(sx,sy,tx,ty,'#ff55aa',22));
-    await wait(250);
-    addFX(fxExplosion(tx,ty,'#ff77bb',120));
-    addFX(fxPsychicWaves(tx,ty,'#ff55aa'));
-    screenShake('medium',550); flashScreen('#ff55aa',350);
+    addFX(fxScreenDarken(0.3)); addFX(fxChargeGlow(sx,sy,'#ff44aa'));
+    await wait(380);
+    addFX(fxPsychicWaves(sx,sy,'#ff44aa'));
+    await wait(150);
+    addFX(fxEnergyBall(sx,sy,tx,ty,'#ff55bb',26));
+    await wait(360);
+    addFX(fxExplosion(tx,ty,'#ff66cc',135));
+    addFX(fxPsychicWaves(tx,ty,'#ff44aa'));
+    screenShake('medium',550); flashScreen('#ff55aa',360);
     await wait(500);
   },
+  // Slow heavy dark orb — intentionally longer travel, dark flash
   'Shadow Ball': async (addFX, w, h, isP) => {
     const [sx,sy,tx,ty] = isP ? [w*.2,h*.65,w*.75,h*.25] : [w*.8,h*.3,w*.25,h*.7];
-    addFX(fxChargeGlow(sx,sy,'#553388'));
-    await wait(280);
-    addFX(fxEnergyBall(sx,sy,tx,ty,'#664499',24));
-    await wait(450);
-    addFX(fxExplosion(tx,ty,'#775599',100));
-    screenShake('small',400); flashScreen('#553388',280);
-    await wait(400);
+    addFX(fxChargeGlow(sx,sy,'#331144'));
+    await wait(380);
+    addFX(fxEnergyBall(sx,sy,tx,ty,'#553388',28));
+    await wait(520);
+    addFX(fxExplosion(tx,ty,'#553388',115));
+    addFX(fxPsychicWaves(tx,ty,'#441166'));
+    screenShake('small',380); flashScreen('#220033',280);
+    await wait(380);
   },
+  // Clean precise sphere — sparkles at both src and target, no darken
   'Aura Sphere': async (addFX, w, h, isP) => {
     const [sx,sy,tx,ty] = isP ? [w*.2,h*.65,w*.75,h*.25] : [w*.8,h*.3,w*.25,h*.7];
-    addFX(fxChargeGlow(sx,sy,'#3388ff'));
+    addFX(fxChargeGlow(sx,sy,'#2266ff'));
     await wait(280);
-    addFX(fxEnergyBall(sx,sy,tx,ty,'#3399ff',22));
-    await wait(450);
-    addFX(fxExplosion(tx,ty,'#4488ff',100));
-    screenShake('small',400); flashScreen('#3388ff',280);
-    await wait(400);
+    addFX(fxSparkles(sx,sy,'#88bbff'));
+    await wait(50);
+    addFX(fxEnergyBall(sx,sy,tx,ty,'#3388ff',24));
+    await wait(380);
+    addFX(fxExplosion(tx,ty,'#4499ff',115));
+    addFX(fxSparkles(tx,ty,'#88ccff'));
+    screenShake('small',380); flashScreen('#3388ff',260);
+    await wait(380);
   },
+  // Gentle heal — no shake/flash, psychic rings + sparkle sequence
   'Recover': async (addFX, w, h, isP) => {
     const cx = isP ? w*.2 : w*.8, cy = isP ? h*.65 : h*.3;
-    addFX(fxSparkles(cx,cy,'#44ff88'));
     addFX(fxChargeGlow(cx,cy,'#44ff88'));
-    await wait(900);
+    await wait(200);
+    addFX(fxSparkles(cx,cy,'#aaffcc'));
+    await wait(200);
+    addFX(fxPsychicWaves(cx,cy,'#66ffaa'));
+    await wait(300);
+    addFX(fxSparkles(cx,cy,'#ffffff'));
+    await wait(400);
+    addFX(fxSparkles(cx,cy,'#44ff88'));
+    await wait(300);
   }
 };
 
@@ -1667,9 +2033,9 @@ async function runBattleFull(party) {
   const scene = el('div', { className: 'scene active battle-scene' });
   const field = el('div', { className: 'battle-field' });
   const enemyPoke = el('div', { className: 'battle-pokemon enemy-pokemon' }, [
-    el('img', { src: spriteUrl(mewtwo.id), id: 'enemy-sprite', style: { opacity: '0' } })
+    el('img', { src: artUrl(mewtwo.id), id: 'enemy-sprite', style: { opacity: '0' } })
   ]);
-  const enemyHpBox = el('div', { className: 'hp-box enemy-hp-box' }, [
+  const enemyHpBox = el('div', { className: 'hp-box enemy-hp-box', style: { opacity: '0', transition: 'opacity 0.4s' } }, [
     el('span', { className: 'hp-name', textContent: mewtwo.name }),
     el('span', { className: 'hp-level', textContent: 'Lv100' }),
     el('div', { className: 'hp-bar-outer' }, [
@@ -1678,9 +2044,9 @@ async function runBattleFull(party) {
     el('div', { className: 'hp-numbers', id: 'enemy-hp-text', textContent: `${mewtwo.currentHp} / ${mewtwo.maxHp}` })
   ]);
   const playerPoke = el('div', { className: 'battle-pokemon player-pokemon' }, [
-    el('img', { src: backUrl(activePokemon.id), id: 'player-sprite', style: { opacity: '0' } })
+    el('img', { src: artUrl(activePokemon.id), id: 'player-sprite', style: { opacity: '0' } })
   ]);
-  const playerHpBox = el('div', { className: 'hp-box player-hp-box' }, [
+  const playerHpBox = el('div', { className: 'hp-box player-hp-box', style: { opacity: '0', transition: 'opacity 0.4s' } }, [
     el('span', { className: 'hp-name', id: 'player-name', textContent: activePokemon.name }),
     el('span', { className: 'hp-level', textContent: 'Lv100' }),
     el('div', { className: 'hp-bar-outer' }, [
@@ -1692,6 +2058,16 @@ async function runBattleFull(party) {
   const fxCanvas = el('canvas', { className: 'fx-canvas' });
   field.append(enemyPoke, enemyHpBox, playerPoke, playerHpBox, msgEl, fxCanvas);
   scene.appendChild(field);
+
+  // Drifting embers rising off the scorched ground
+  for (let i = 0; i < 14; i++) {
+    const ember = el('div', { className: 'ember', style: {
+      left: (Math.random() * 100) + '%',
+      animationDuration: (3 + Math.random() * 4) + 's',
+      animationDelay: (Math.random() * 5) + 's'
+    }});
+    field.appendChild(ember);
+  }
 
   // Resize canvas to match field
   function resizeFX() {
@@ -1755,7 +2131,7 @@ async function runBattleFull(party) {
 
   function refreshPlayer(showSprite=true) {
     const s = $('#player-sprite');
-    if (s) { s.src = backUrl(activePokemon.id); if (showSprite) s.style.opacity = ''; }
+    if (s) { s.src = artUrl(activePokemon.id); if (showSprite) s.style.opacity = ''; }
     const n = $('#player-name');
     if (n) n.textContent = activePokemon.name;
     updateHpBar('player');
@@ -1840,7 +2216,7 @@ async function runBattleFull(party) {
 
     // Sprite shrinks into red energy
     sprite.style.transition = 'opacity 0.35s, transform 0.35s ease-in, filter 0.2s';
-    sprite.style.filter = 'brightness(2) saturate(0) drop-shadow(0 0 15px #ff4444)';
+    sprite.style.filter = 'brightness(1.7) drop-shadow(0 0 18px #ff4444)';
     sprite.style.transform = 'translateY(0) scale(0.15)';
     sprite.style.opacity = '0';
     await wait(450);
@@ -1870,7 +2246,8 @@ async function runBattleFull(party) {
     field.appendChild(bg); field.appendChild(banner);
     setTimeout(() => { banner.remove(); bg.remove(); }, 950);
 
-    await showMsg(`${attacker.name} used ${move.name}!`, 700);
+    // Let the move-name banner read for a beat before the attack (no extra "X used Y!" text box)
+    await wait(450);
 
     // Accuracy check
     if (move.accuracy < 999 && Math.random() * 100 > move.accuracy) {
@@ -2034,16 +2411,18 @@ async function runBattleFull(party) {
     });
   }
 
-  // Entry message — send out both Pokemon with Poke Ball animations
-  // Mewtwo appears first (sprites start hidden via inline style at creation)
+  // Entry message — send out both Pokemon with Poke Ball animations.
+  // Sprites and HP boxes start hidden; each HP box is revealed together
+  // with its Pokemon as it materializes from the Poke Ball.
   await wait(300);
-  await showMsg(`A wild MEWTWO appeared!`, 800);
   await playSendOut(enemyPoke, false);
+  enemyHpBox.style.opacity = '1';
   await wait(300);
 
   // Player sends out their Pokemon
   await showMsg(`Go, ${activePokemon.name}!`, 600);
   await playSendOut(playerPoke, true);
+  playerHpBox.style.opacity = '1';
   await wait(200);
 
   // MAIN BATTLE LOOP
@@ -2064,8 +2443,10 @@ async function runBattleFull(party) {
       activePokemon = party[activeIdx];
       refreshPlayer(false);
       playerPoke.querySelector('img').style.opacity = '0';
+      playerHpBox.style.opacity = '0';
       await showMsg(`Go, ${activePokemon.name}!`, 600);
       await playSendOut(playerPoke, true);
+      playerHpBox.style.opacity = '1';
       continue;
     }
 
@@ -2081,9 +2462,11 @@ async function runBattleFull(party) {
       activePokemon = party[activeIdx];
       refreshPlayer(false);
       playerPoke.querySelector('img').style.opacity = '0';
+      playerHpBox.style.opacity = '0';
       // Send out new Pokemon
       await showMsg(`Go, ${activePokemon.name}!`, 600);
       await playSendOut(playerPoke, true);
+      playerHpBox.style.opacity = '1';
       // Mewtwo free attack
       if (mewtwo.currentHp > 0) {
         const mm = mewtwoAI(mewtwo, activePokemon);
@@ -2230,7 +2613,7 @@ async function runDefeat() {
   await wait(2000);
 
   // Show all three starters briefly
-  const starterRow = el('div', { style: { display: 'flex', gap: '15px', marginTop: '20px', opacity: '0', transition: 'opacity 1s' } });
+  const starterRow = el('div', { style: { display: 'flex', justifyContent: 'center', gap: '15px', marginTop: '20px', opacity: '0', transition: 'opacity 1s' } });
   ['charizard', 'rayquaza', 'pikachu'].forEach(key => {
     const d = STARTERS_DATA[key];
     const img = el('img', { src: spriteUrl(d.id), style: { width: '64px', height: '64px', imageRendering: 'pixelated' } });
@@ -2318,15 +2701,19 @@ async function runVictory() {
 async function startGame() {
   stopBattleMusic();
   await showStartScreen();
-  await runIntro();
-  const starterKey = await runSelection();
+  // Meadow cinematic + hybrid selection — returns the chosen starter key.
+  // (Mewtwo's attack happens in the meadow here, so there's no separate entrance.)
+  const starterKey = await runOpening();
+
+  // Silence the ominous opening theme, then a beat of quiet before battle.
+  stopMusic(0.6);
+  await wait(700);
 
   gameState.selectedStarter = starterKey;
   gameState.isRematch = false;
 
-  await runEntrance();
-
   // First battle: 1 pokemon
+  startBattleMusic();
   const firstParty = [createPokemon(starterKey)];
   let result = await runBattleFull(firstParty);
 
@@ -2351,6 +2738,9 @@ async function startGame() {
   }
 
   while (true) {
+    // Silence whatever played on the defeat/retry screen, then a beat of quiet.
+    stopMusic(0.5);
+    await wait(650);
     startBattleMusic();
     result = await runBattleFull(rematchParty);
     if (result === 'victory') {
@@ -2386,8 +2776,10 @@ function preloadImages() {
   const urls = [
     artUrl(6), artUrl(384), artUrl(25), artUrl(150),
     spriteUrl(150), backUrl(6), backUrl(384), backUrl(25),
-    ...LEGENDARIES.map(l => spriteUrl(l.id)),
-    ...FLEE_POKEMON.map(id => spriteUrl(id))
+    // Animated meadow sprites (intro cinematic + hybrid selection)
+    animUrl(150), animUrl(6), animUrl(384), animUrl(25),
+    ...LEGENDARIES.map(l => animUrl(l.id)),
+    ...FLEE_POKEMON.map(id => animUrl(id))
   ];
   urls.forEach(u => { const img = new Image(); img.src = u; });
 }
