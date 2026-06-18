@@ -1,0 +1,2391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Pokemon: The Last Stand</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:100%;height:100%;overflow:hidden;background:#000;color:#fff;font-family:'Courier New',monospace}
+#game{width:100vw;height:100vh;position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center}
+#scene{width:100%;height:100%;position:absolute;top:0;left:0}
+#overlay{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:1000}
+
+.scene{position:absolute;top:0;left:0;width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;opacity:0;transition:opacity 0.5s}
+.scene.active{opacity:1}
+
+.fade-text{opacity:0;transition:opacity 1.5s;font-size:clamp(1.4rem,4vw,2.8rem);text-align:center;color:#ccc;text-shadow:0 0 20px rgba(255,255,255,0.3);letter-spacing:2px}
+.fade-text.visible{opacity:1}
+.fade-text.dramatic{color:#ff4444;font-size:clamp(1.6rem,4.5vw,3.2rem);text-shadow:0 0 30px rgba(255,0,0,0.5)}
+
+.legendary-container{display:flex;flex-wrap:wrap;justify-content:center;gap:clamp(10px,3vw,40px);margin:20px 0}
+.legendary{opacity:0;transform:scale(0.3);transition:all 0.4s ease-out;filter:brightness(0) drop-shadow(0 0 0px transparent)}
+.legendary.revealed{opacity:1;transform:scale(1);filter:brightness(0) invert(1) brightness(0.7) drop-shadow(0 0 20px rgba(100,150,255,0.8))}
+.legendary img{width:clamp(50px,10vw,96px);height:clamp(50px,10vw,96px);image-rendering:pixelated}
+
+.oak-text{font-size:clamp(1rem,2.5vw,1.5rem);color:#ffd700;text-align:center;line-height:1.8;max-width:600px;padding:0 20px}
+
+.btn{background:none;border:2px solid #ffd700;color:#ffd700;padding:12px 40px;font-family:inherit;font-size:clamp(0.9rem,2vw,1.2rem);cursor:pointer;margin-top:30px;transition:all 0.3s;letter-spacing:2px;text-transform:uppercase}
+.btn:hover{background:#ffd700;color:#000;transform:scale(1.05);box-shadow:0 0 20px rgba(255,215,0,0.5)}
+
+/* Selection Scene */
+.selection-container{display:flex;gap:clamp(15px,3vw,40px);justify-content:center;align-items:center;flex-wrap:wrap;padding:20px}
+.starter-card{position:relative;background:radial-gradient(ellipse at center bottom,rgba(255,255,255,0.08) 0%,transparent 70%);border:2px solid rgba(255,255,255,0.1);border-radius:16px;padding:clamp(15px,2vw,30px);text-align:center;cursor:pointer;transition:all 0.4s ease;width:clamp(160px,25vw,260px);overflow:hidden}
+.starter-card::before{content:'';position:absolute;top:-50%;left:50%;transform:translateX(-50%);width:2px;height:150%;background:linear-gradient(to bottom,transparent,rgba(255,255,255,0.3),rgba(255,255,255,0.6),rgba(255,255,255,0.3),transparent);opacity:0.3;transition:opacity 0.4s}
+.starter-card:hover{transform:scale(1.1) translateY(-10px);border-color:rgba(255,255,255,0.4);box-shadow:0 20px 60px rgba(255,255,255,0.1)}
+.starter-card:hover::before{opacity:0.8}
+.starter-card.selected{transform:scale(1.15);border-color:#ffd700;box-shadow:0 0 60px rgba(255,215,0,0.4)}
+.starter-card.dismissed{opacity:0;transform:scale(0.5);pointer-events:none}
+.starter-card img{width:clamp(100px,15vw,180px);height:clamp(100px,15vw,180px);transition:all 0.4s;filter:drop-shadow(0 5px 15px rgba(0,0,0,0.5))}
+.starter-card:hover img{filter:drop-shadow(0 10px 30px rgba(255,255,255,0.2))}
+.starter-name{font-size:clamp(1rem,2vw,1.5rem);font-weight:bold;margin:10px 0 5px;letter-spacing:2px}
+.starter-types{display:flex;gap:6px;justify-content:center;margin-bottom:10px}
+.type-badge{padding:3px 10px;border-radius:4px;font-size:0.7rem;font-weight:bold;letter-spacing:1px;text-transform:uppercase}
+.type-fire{background:#f08030;color:#fff}
+.type-flying{background:#a890f0;color:#fff}
+.type-dragon{background:#7038f8;color:#fff}
+.type-electric{background:#f8d030;color:#333}
+.type-water{background:#6890f0;color:#fff}
+.type-steel{background:#b8b8d0;color:#333}
+.type-normal{background:#a8a878;color:#fff}
+.type-psychic{background:#f85888;color:#fff}
+.type-ghost{background:#705898;color:#fff}
+.type-fighting{background:#c03028;color:#fff}
+.move-list{text-align:left;font-size:clamp(0.6rem,1.2vw,0.8rem);color:#aaa;margin-top:8px;line-height:1.6}
+.hp-stat{color:#66ff66;font-size:clamp(0.8rem,1.5vw,1rem);margin-top:6px}
+
+/* Entrance Scene */
+.entrance-scene{background:#000;overflow:hidden}
+.city-container{position:absolute;bottom:0;left:0;width:100%;height:40%}
+.building{position:absolute;bottom:0;background:#1a1a2e;border:1px solid #333;transition:all 0.5s}
+.building.crumble{animation:crumble 2s forwards}
+.fire-container{position:absolute;bottom:0;left:0;width:100%;height:80px;z-index:5}
+.fire-bar{width:100%;height:100%;background:linear-gradient(0deg,#ff4500 0%,#ff6600 30%,#ff9900 50%,#ffcc00 70%,transparent 100%);animation:fireFlicker 0.15s infinite alternate;opacity:0;transition:opacity 1s}
+.fire-bar.active{opacity:0.8}
+.flee-pokemon{position:absolute;bottom:90px;z-index:4}
+.flee-pokemon img{width:40px;height:40px;image-rendering:pixelated;transform:scaleX(-1)}
+.mewtwo-glow{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:300px;height:300px;border-radius:50%;background:radial-gradient(circle,rgba(160,60,255,0.6) 0%,rgba(120,40,200,0.3) 40%,transparent 70%);opacity:0;transition:opacity 2s;animation:glowPulse 2s infinite alternate;z-index:10}
+.mewtwo-entrance-sprite{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);opacity:0;transition:opacity 2s;z-index:11}
+.mewtwo-entrance-sprite img{width:clamp(150px,30vw,300px);filter:drop-shadow(0 0 30px rgba(160,60,255,0.8))}
+.entrance-text{position:absolute;top:15%;left:50%;transform:translateX(-50%);font-size:clamp(1.5rem,4vw,3rem);color:#bf5fff;text-shadow:0 0 30px rgba(160,60,255,0.8);opacity:0;transition:opacity 1s;z-index:12;text-align:center;letter-spacing:4px;white-space:nowrap}
+
+/* Battle Scene */
+.battle-scene{background:linear-gradient(180deg,#0a0a1a 0%,#1a1a2e 50%,#0d1117 100%);display:flex;flex-direction:column}
+.battle-field{flex:1;position:relative;min-height:0}
+.battle-pokemon{position:absolute;transition:transform 0.3s}
+.battle-pokemon img{transition:opacity 0.3s,filter 0.3s}
+.battle-pokemon.hit{animation:blink 0.1s linear 3}
+.enemy-pokemon{top:clamp(20px,5%,60px);right:clamp(20px,10%,120px)}
+.enemy-pokemon img{width:clamp(100px,20vw,200px);filter:drop-shadow(0 5px 20px rgba(160,60,255,0.4));animation:idleBob 1.9s ease-in-out infinite 0.4s}
+.player-pokemon{bottom:clamp(20px,8%,80px);left:clamp(20px,10%,120px)}
+.player-pokemon img{width:clamp(110px,22vw,220px);filter:drop-shadow(0 5px 20px rgba(255,255,255,0.2));animation:idleBob 1.6s ease-in-out infinite}
+@keyframes idleBob{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+
+.hp-box{position:absolute;background:rgba(0,0,0,0.8);border:2px solid #555;border-radius:8px;padding:clamp(8px,1.5vw,15px);min-width:clamp(180px,30vw,300px)}
+.enemy-hp-box{top:clamp(10px,3%,40px);left:clamp(15px,5%,60px)}
+.player-hp-box{bottom:clamp(10px,5%,60px);right:clamp(15px,5%,60px)}
+.hp-name{font-size:clamp(0.8rem,1.8vw,1.1rem);font-weight:bold;letter-spacing:1px}
+.hp-level{float:right;color:#aaa;font-size:clamp(0.7rem,1.4vw,0.9rem)}
+.hp-bar-outer{width:100%;height:clamp(8px,1.5vw,14px);background:#333;border-radius:7px;margin:6px 0 3px;overflow:hidden;border:1px solid #555}
+.hp-bar-inner{height:100%;border-radius:6px;transition:width 0.8s ease-out;position:relative}
+.hp-bar-inner.hp-green{background:linear-gradient(90deg,#00cc66,#00ff88)}
+.hp-bar-inner.hp-yellow{background:linear-gradient(90deg,#ccaa00,#ffdd00)}
+.hp-bar-inner.hp-red{background:linear-gradient(90deg,#cc2200,#ff4433)}
+.hp-numbers{font-size:clamp(0.65rem,1.2vw,0.85rem);color:#aaa;text-align:right}
+
+.battle-msg{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:clamp(1.2rem,3vw,2rem);color:#fff;text-shadow:0 0 20px rgba(255,255,255,0.5);opacity:0;transition:opacity 0.3s;z-index:20;text-align:center;pointer-events:none;white-space:nowrap}
+.battle-msg.visible{opacity:1}
+
+.damage-num{position:absolute;font-size:clamp(1.5rem,3vw,2.5rem);font-weight:bold;color:#ff4444;z-index:25;pointer-events:none;animation:floatUp 1s forwards;text-shadow:2px 2px 0 #000}
+.damage-num.heal{color:#44ff88}
+.damage-num.crit{color:#ffdd00;font-size:clamp(2rem,4vw,3rem)}
+
+.move-panel{background:rgba(0,0,0,0.95);border-top:2px solid #444;padding:clamp(8px,1.5vw,15px);display:grid;grid-template-columns:1fr 1fr;gap:clamp(6px,1vw,10px);overflow-y:auto;max-height:45vh}
+.move-btn{background:rgba(255,255,255,0.05);border:2px solid rgba(255,255,255,0.2);border-radius:8px;padding:clamp(8px,1.2vw,14px);cursor:pointer;text-align:left;transition:all 0.2s;font-family:inherit;color:#fff}
+.move-btn:hover:not(:disabled){background:rgba(255,255,255,0.15);border-color:rgba(255,255,255,0.5);transform:scale(1.02)}
+.move-btn:disabled{opacity:0.3;cursor:default}
+.move-btn .move-name{font-size:clamp(0.8rem,1.5vw,1.1rem);font-weight:bold;letter-spacing:1px}
+.move-btn .move-info{font-size:clamp(0.6rem,1vw,0.75rem);color:#aaa;margin-top:3px}
+.move-btn .move-pp{float:right;color:#88aaff}
+.switch-btn{grid-column:1/-1;background:rgba(255,100,0,0.1);border:2px solid rgba(255,100,0,0.4);border-radius:8px;padding:clamp(8px,1.2vw,12px);cursor:pointer;text-align:center;transition:all 0.2s;font-family:inherit;color:#ff8844;font-size:clamp(0.8rem,1.5vw,1rem);letter-spacing:1px}
+.switch-btn:hover{background:rgba(255,100,0,0.25);transform:scale(1.02)}
+
+.party-bar{display:flex;gap:6px;padding:8px 15px;background:rgba(0,0,0,0.8);border-top:1px solid #333;justify-content:center}
+.party-dot{width:clamp(12px,2vw,18px);height:clamp(12px,2vw,18px);border-radius:50%;border:2px solid #555;transition:all 0.3s}
+.party-dot.alive{background:#00ff88;border-color:#00cc66;box-shadow:0 0 8px rgba(0,255,136,0.4)}
+.party-dot.fainted{background:#ff3333;border-color:#cc0000}
+.party-dot.active{border-color:#ffd700;box-shadow:0 0 12px rgba(255,215,0,0.6)}
+.party-dot.empty{background:transparent;border-color:#333}
+
+.restore-btn{grid-column:1/-1;background:rgba(0,200,80,0.1);border:2px solid rgba(0,200,80,0.4);border-radius:8px;padding:clamp(8px,1.2vw,12px);cursor:pointer;text-align:center;transition:all 0.2s;font-family:inherit;color:#44dd88;font-size:clamp(0.8rem,1.5vw,1rem);letter-spacing:1px;display:flex;align-items:center;justify-content:center;gap:8px}
+.restore-btn:hover:not(:disabled){background:rgba(0,200,80,0.25);transform:scale(1.02)}
+.restore-btn:disabled{opacity:0.25;cursor:default}
+.restore-btn .restore-icon{font-size:1.2em}
+
+.fx-canvas{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:18}
+
+.switch-panel{position:absolute;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.9);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:30;gap:15px}
+.switch-option{display:flex;align-items:center;gap:15px;background:rgba(255,255,255,0.05);border:2px solid rgba(255,255,255,0.2);border-radius:12px;padding:15px 25px;cursor:pointer;transition:all 0.3s;width:min(90%,400px)}
+.switch-option:hover{background:rgba(255,255,255,0.15);border-color:#ffd700;transform:scale(1.03)}
+.switch-option.fainted{opacity:0.3;pointer-events:none}
+.switch-option img{width:60px;height:60px;image-rendering:pixelated}
+.switch-option .sw-name{font-weight:bold;font-size:1rem}
+.switch-option .sw-hp{font-size:0.8rem;color:#aaa}
+
+/* Victory & Defeat */
+.result-scene{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;padding:20px}
+.result-title{font-size:clamp(2rem,5vw,4rem);letter-spacing:4px}
+.result-stats{background:rgba(255,255,255,0.05);border:1px solid #444;border-radius:12px;padding:25px;text-align:center;line-height:2;font-size:clamp(0.9rem,1.8vw,1.2rem)}
+.stat-label{color:#aaa}
+.stat-value{color:#ffd700;font-weight:bold}
+.mvp{color:#ff8844;font-size:clamp(1.2rem,2.5vw,1.8rem);text-shadow:0 0 20px rgba(255,136,68,0.4)}
+
+/* Animations */
+@keyframes shake-small{0%,100%{transform:translate(0)}25%{transform:translate(-3px,2px)}50%{transform:translate(3px,-2px)}75%{transform:translate(-2px,3px)}}
+@keyframes shake-medium{0%,100%{transform:translate(0)}25%{transform:translate(-8px,5px)}50%{transform:translate(8px,-5px)}75%{transform:translate(-5px,8px)}}
+@keyframes shake-large{0%,100%{transform:translate(0)}10%{transform:translate(-15px,10px)}20%{transform:translate(15px,-10px)}30%{transform:translate(-12px,15px)}40%{transform:translate(12px,-8px)}50%{transform:translate(-10px,12px)}60%{transform:translate(10px,-12px)}70%{transform:translate(-8px,10px)}80%{transform:translate(8px,-10px)}90%{transform:translate(-5px,5px)}}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0.1}}
+@keyframes floatUp{0%{opacity:1;transform:translateY(0)}100%{opacity:0;transform:translateY(-60px)}}
+@keyframes fireFlicker{0%{transform:scaleY(1);opacity:0.7}100%{transform:scaleY(1.15);opacity:0.9}}
+@keyframes crumble{0%{transform:translateY(0) rotate(0);opacity:1}30%{transform:translateY(-10px) rotate(-2deg)}100%{transform:translateY(100vh) rotate(15deg);opacity:0}}
+@keyframes glowPulse{0%{transform:translate(-50%,-50%) scale(1);opacity:0.6}100%{transform:translate(-50%,-50%) scale(1.2);opacity:0.9}}
+@keyframes flee{0%{transform:translateX(100vw)}100%{transform:translateX(-100px)}}
+@keyframes victoryGlow{0%{opacity:0}50%{opacity:1}100%{opacity:0.8}}
+
+/* Start Screen */
+.start-screen{cursor:pointer}
+.start-screen .title{font-size:clamp(1.5rem,4vw,3rem);color:#ffd700;text-shadow:0 0 30px rgba(255,215,0,0.4);letter-spacing:4px;margin-bottom:30px}
+.start-screen .subtitle{font-size:clamp(0.8rem,1.5vw,1rem);color:#888;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:0.5}50%{opacity:1}}
+
+/* Battle Animations */
+@keyframes playerAttack{0%{transform:translate(0,0) scale(1)}35%{transform:translate(clamp(30px,8vw,70px),clamp(-20px,-5vw,-45px)) scale(1.15)}100%{transform:translate(0,0) scale(1)}}
+@keyframes enemyAttack{0%{transform:translate(0,0) scale(1)}35%{transform:translate(clamp(-30px,-8vw,-70px),clamp(20px,5vw,45px)) scale(1.15)}100%{transform:translate(0,0) scale(1)}}
+@keyframes hitRecoil{0%{transform:translate(0,0)}20%{transform:translate(12px,-4px)}45%{transform:translate(-8px,4px)}70%{transform:translate(4px,-2px)}100%{transform:translate(0,0)}}
+.attacking-player{animation:playerAttack 0.4s ease-out !important}
+.attacking-enemy{animation:enemyAttack 0.4s ease-out !important}
+.hit-recoil{animation:hitRecoil 0.3s ease-out !important}
+
+.move-banner{position:absolute;top:42%;left:0;width:100%;text-align:center;font-size:clamp(1.8rem,5vw,3.5rem);font-weight:bold;letter-spacing:5px;z-index:30;pointer-events:none;text-shadow:3px 3px 0 #000,-1px -1px 0 #000,1px -1px 0 #000,-1px 1px 0 #000;animation:bannerSlide 0.9s ease-out forwards}
+.move-banner-bg{position:absolute;top:40%;left:0;width:100%;height:60px;z-index:29;pointer-events:none;animation:bannerBgSlide 0.9s ease-out forwards}
+@keyframes bannerSlide{0%{transform:translateX(-120%) skewX(-8deg);opacity:0}12%{transform:translateX(0) skewX(-3deg);opacity:1}75%{transform:translateX(0) skewX(-3deg);opacity:1}100%{transform:translateX(120%) skewX(-8deg);opacity:0}}
+@keyframes bannerBgSlide{0%{transform:translateX(-120%) skewX(-8deg);opacity:0}12%{transform:translateX(0) skewX(-8deg);opacity:0.7}75%{transform:translateX(0) skewX(-8deg);opacity:0.5}100%{transform:translateX(120%) skewX(-8deg);opacity:0}}
+
+.move-particle{position:absolute;border-radius:50%;pointer-events:none;z-index:15}
+.fx-fire{background:radial-gradient(circle,#ffaa00,#ff4400);box-shadow:0 0 12px #ff6600}
+.fx-water{background:radial-gradient(circle,#66bbff,#0055cc);box-shadow:0 0 10px #3388ff}
+.fx-electric{background:radial-gradient(circle,#ffee00,#ffaa00);box-shadow:0 0 18px #ffdd00}
+.fx-dragon{background:radial-gradient(circle,#aa55ff,#5500bb);box-shadow:0 0 12px #8833ee}
+.fx-flying{background:radial-gradient(circle,#ddddff,#8888cc);box-shadow:0 0 10px #bbbbee}
+.fx-normal{background:radial-gradient(circle,#eeeebb,#999977);box-shadow:0 0 6px #cccc99}
+.fx-steel{background:radial-gradient(circle,#ddddee,#8888aa);box-shadow:0 0 10px #bbbbdd}
+.fx-psychic{background:radial-gradient(circle,#ff77bb,#dd2299);box-shadow:0 0 14px #ff55aa}
+.fx-ghost{background:radial-gradient(circle,#9966bb,#553388);box-shadow:0 0 12px #7744aa}
+.fx-fighting{background:radial-gradient(circle,#ff5533,#bb2200);box-shadow:0 0 10px #dd3311}
+
+.impact-burst{position:absolute;pointer-events:none;z-index:16;border-radius:50%;animation:impactBurst 0.5s ease-out forwards}
+@keyframes impactBurst{0%{transform:translate(-50%,-50%) scale(0.2);opacity:0.9}100%{transform:translate(-50%,-50%) scale(2.5);opacity:0}}
+
+.impact-ring{position:absolute;pointer-events:none;z-index:16;border-radius:50%;border:3px solid;animation:impactRing 0.6s ease-out forwards}
+@keyframes impactRing{0%{transform:translate(-50%,-50%) scale(0.3);opacity:1}100%{transform:translate(-50%,-50%) scale(3);opacity:0}}
+
+.heal-sparkle{position:absolute;pointer-events:none;z-index:16;width:6px;height:6px;background:#44ff88;border-radius:50%;box-shadow:0 0 8px #22ff66;animation:sparkleRise 0.8s ease-out forwards}
+@keyframes sparkleRise{0%{opacity:1;transform:translateY(0) scale(1)}100%{opacity:0;transform:translateY(-60px) scale(0.3)}}
+
+@media(max-width:600px){
+  .selection-container{flex-direction:column;align-items:center}
+  .starter-card{width:85vw}
+  .move-panel{grid-template-columns:1fr}
+  .enemy-pokemon{top:10px;right:10px}
+  .player-pokemon{bottom:10px;left:10px}
+  .enemy-hp-box{top:5px;left:5px;right:auto}
+  .player-hp-box{bottom:5px;right:5px;left:auto}
+}
+</style>
+</head>
+<body>
+<div id="game"><div id="scene"></div><div id="overlay"></div></div>
+<script>
+// ============================================================
+// DATA
+// ============================================================
+const SPRITE_BASE = 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon';
+const spriteUrl = id => `${SPRITE_BASE}/${id}.png`;
+const artUrl = id => `${SPRITE_BASE}/other/official-artwork/${id}.png`;
+const backUrl = id => `${SPRITE_BASE}/back/${id}.png`;
+
+const TYPE_COLORS = {
+  fire:'#f08030',water:'#6890f0',electric:'#f8d030',dragon:'#7038f8',
+  flying:'#a890f0',normal:'#a8a878',steel:'#b8b8d0',psychic:'#f85888',
+  ghost:'#705898',fighting:'#c03028'
+};
+
+const TYPE_CHART = {
+  normal:{rock:0.5,ghost:0,steel:0.5},
+  fire:{fire:0.5,water:0.5,grass:2,ice:2,bug:2,rock:0.5,dragon:0.5,steel:2},
+  water:{fire:2,water:0.5,grass:0.5,ground:2,rock:2,dragon:0.5},
+  electric:{water:2,electric:0.5,grass:0.5,ground:0,flying:2,dragon:0.5},
+  grass:{fire:0.5,water:2,grass:0.5,poison:0.5,ground:2,flying:0.5,bug:0.5,rock:2,dragon:0.5,steel:0.5},
+  ice:{fire:0.5,water:0.5,ice:0.5,grass:2,ground:2,flying:2,dragon:2,steel:0.5},
+  fighting:{normal:2,ice:2,rock:2,dark:2,steel:2,poison:0.5,flying:0.5,psychic:0.5,bug:0.5,ghost:0,fairy:0.5},
+  poison:{grass:2,fairy:2,poison:0.5,ground:0.5,rock:0.5,ghost:0.5,steel:0},
+  ground:{fire:2,electric:2,poison:2,rock:2,steel:2,grass:0.5,bug:0.5,flying:0},
+  flying:{grass:2,fighting:2,bug:2,electric:0.5,rock:0.5,steel:0.5},
+  psychic:{fighting:2,poison:2,psychic:0.5,steel:0.5,dark:0},
+  bug:{grass:2,psychic:2,dark:2,fire:0.5,fighting:0.5,poison:0.5,flying:0.5,ghost:0.5,steel:0.5,fairy:0.5},
+  rock:{fire:2,ice:2,flying:2,bug:2,fighting:0.5,ground:0.5,steel:0.5},
+  ghost:{psychic:2,ghost:2,normal:0,dark:0.5},
+  dragon:{dragon:2,steel:0.5,fairy:0},
+  dark:{psychic:2,ghost:2,fighting:0.5,dark:0.5,fairy:0.5},
+  steel:{ice:2,rock:2,fairy:2,fire:0.5,water:0.5,electric:0.5,steel:0.5},
+  fairy:{fighting:2,dragon:2,dark:2,fire:0.5,poison:0.5,steel:0.5}
+};
+
+function getTypeEffectiveness(moveType, defenderTypes) {
+  let mult = 1;
+  for (const dt of defenderTypes) {
+    const chart = TYPE_CHART[moveType];
+    if (chart && chart[dt] !== undefined) mult *= chart[dt];
+  }
+  return mult;
+}
+
+const STARTERS_DATA = {
+  charizard: {
+    id: 6, name: 'CHARIZARD', types: ['fire','flying'], maxHp: 550,
+    atk: 165, def: 145, spd: 160,
+    moves: [
+      { name: 'Blast Burn', type: 'fire', power: 150, accuracy: 100, pp: 5, maxPp: 5 },
+      { name: 'Flare Blitz', type: 'fire', power: 120, accuracy: 100, pp: 15, maxPp: 15 },
+      { name: 'Dragon Pulse', type: 'dragon', power: 85, accuracy: 100, pp: 10, maxPp: 10 },
+      { name: 'Air Slash', type: 'flying', power: 75, accuracy: 95, pp: 15, maxPp: 15 }
+    ]
+  },
+  rayquaza: {
+    id: 384, name: 'RAYQUAZA', types: ['dragon','flying'], maxHp: 600,
+    atk: 180, def: 150, spd: 170,
+    moves: [
+      { name: 'Dragon Ascent', type: 'flying', power: 120, accuracy: 100, pp: 5, maxPp: 5 },
+      { name: 'Outrage', type: 'dragon', power: 120, accuracy: 100, pp: 10, maxPp: 10 },
+      { name: 'Extreme Speed', type: 'normal', power: 80, accuracy: 100, pp: 5, maxPp: 5, priority: true },
+      { name: 'V-Create', type: 'fire', power: 180, accuracy: 95, pp: 5, maxPp: 5 }
+    ]
+  },
+  pikachu: {
+    id: 25, name: 'PIKACHU', types: ['electric'], maxHp: 500,
+    atk: 155, def: 135, spd: 180,
+    moves: [
+      { name: 'Volt Tackle', type: 'electric', power: 120, accuracy: 100, pp: 15, maxPp: 15, recoil: 0.33 },
+      { name: 'Thunder', type: 'electric', power: 110, accuracy: 70, pp: 10, maxPp: 10 },
+      { name: 'Surf', type: 'water', power: 90, accuracy: 100, pp: 15, maxPp: 15 },
+      { name: 'Iron Tail', type: 'steel', power: 100, accuracy: 75, pp: 15, maxPp: 15 }
+    ]
+  }
+};
+
+const MEWTWO_DATA = {
+  id: 150, name: 'MEWTWO', types: ['psychic'], maxHp: 700,
+  atk: 190, def: 160, spd: 175,
+  moves: [
+    { name: 'Psystrike', type: 'psychic', power: 100, accuracy: 100, pp: 10, maxPp: 10 },
+    { name: 'Shadow Ball', type: 'ghost', power: 80, accuracy: 100, pp: 15, maxPp: 15 },
+    { name: 'Aura Sphere', type: 'fighting', power: 80, accuracy: 999, pp: 20, maxPp: 20 },
+    { name: 'Recover', type: 'psychic', power: 0, accuracy: 999, pp: 10, maxPp: 10, heal: true }
+  ]
+};
+
+const LEGENDARIES = [
+  { id: 483, name: 'Dialga' },
+  { id: 484, name: 'Palkia' },
+  { id: 480, name: 'Uxie' },
+  { id: 481, name: 'Mesprit' },
+  { id: 482, name: 'Azelf' }
+];
+
+const FLEE_POKEMON = [16, 19, 10];
+
+// ============================================================
+// AUDIO ENGINE
+// ============================================================
+let audioCtx = null;
+let masterGain = null;
+let musicGain = null;
+let sfxGain = null;
+
+function initAudio() {
+  if (audioCtx) return;
+  audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  masterGain = audioCtx.createGain();
+  masterGain.gain.value = 0.5;
+  masterGain.connect(audioCtx.destination);
+  musicGain = audioCtx.createGain();
+  musicGain.gain.value = 0.35;
+  musicGain.connect(masterGain);
+  sfxGain = audioCtx.createGain();
+  sfxGain.gain.value = 0.6;
+  sfxGain.connect(masterGain);
+}
+
+function playTone(freq, duration, type='square', vol=0.3, startTime=null, dest=null) {
+  if (!audioCtx) return;
+  const t = startTime || audioCtx.currentTime;
+  const d = dest || sfxGain;
+  const osc = audioCtx.createOscillator();
+  const g = audioCtx.createGain();
+  osc.type = type;
+  osc.frequency.setValueAtTime(freq, t);
+  g.gain.setValueAtTime(0.001, t);
+  g.gain.linearRampToValueAtTime(vol, t + 0.008);
+  g.gain.setValueAtTime(vol, t + Math.max(0.01, duration - 0.03));
+  g.gain.linearRampToValueAtTime(0.001, t + duration);
+  osc.connect(g);
+  g.connect(d);
+  osc.start(t);
+  osc.stop(t + duration + 0.01);
+}
+
+function playNoise(duration, vol=0.3, startTime=null, dest=null) {
+  if (!audioCtx) return;
+  const t = startTime || audioCtx.currentTime;
+  const d = dest || sfxGain;
+  const bufLen = Math.floor(audioCtx.sampleRate * duration);
+  const buf = audioCtx.createBuffer(1, bufLen, audioCtx.sampleRate);
+  const data = buf.getChannelData(0);
+  for (let i = 0; i < bufLen; i++) data[i] = Math.random() * 2 - 1;
+  const src = audioCtx.createBufferSource();
+  src.buffer = buf;
+  const g = audioCtx.createGain();
+  g.gain.setValueAtTime(vol, t);
+  g.gain.exponentialRampToValueAtTime(0.001, t + duration);
+  src.connect(g);
+  g.connect(d);
+  src.start(t);
+}
+
+function playBassHit() {
+  if (!audioCtx) return;
+  const t = audioCtx.currentTime;
+  const osc = audioCtx.createOscillator();
+  const g = audioCtx.createGain();
+  osc.type = 'sine';
+  osc.frequency.setValueAtTime(80, t);
+  osc.frequency.exponentialRampToValueAtTime(25, t + 0.6);
+  g.gain.setValueAtTime(0.7, t);
+  g.gain.exponentialRampToValueAtTime(0.001, t + 0.6);
+  osc.connect(g); g.connect(sfxGain);
+  osc.start(t); osc.stop(t + 0.65);
+  playNoise(0.08, 0.15);
+}
+
+function playConfirmSound() {
+  if (!audioCtx) return;
+  const t = audioCtx.currentTime;
+  playTone(523.25, 0.1, 'square', 0.25, t);
+  playTone(659.25, 0.1, 'square', 0.25, t + 0.08);
+  playTone(783.99, 0.15, 'square', 0.3, t + 0.16);
+}
+
+function playSelectSound() {
+  if (!audioCtx) return;
+  const t = audioCtx.currentTime;
+  playTone(440, 0.08, 'square', 0.2, t);
+  playTone(554.37, 0.08, 'square', 0.2, t + 0.06);
+  playTone(659.25, 0.08, 'square', 0.25, t + 0.12);
+  playTone(880, 0.2, 'square', 0.3, t + 0.18);
+}
+
+function playPokeballSound() {
+  if (!audioCtx) return;
+  const t = audioCtx.currentTime;
+  // Whoosh
+  playNoise(0.12, 0.12, t);
+  // Pop open
+  playTone(660, 0.06, 'sine', 0.25, t + 0.15);
+  playTone(990, 0.06, 'sine', 0.2, t + 0.19);
+  playTone(1320, 0.12, 'sine', 0.3, t + 0.23);
+  // Shimmer
+  playTone(1760, 0.08, 'square', 0.08, t + 0.35);
+  playTone(2200, 0.08, 'square', 0.06, t + 0.42);
+}
+
+function playRecallSound() {
+  if (!audioCtx) return;
+  const t = audioCtx.currentTime;
+  playTone(880, 0.1, 'sine', 0.2, t);
+  playTone(660, 0.1, 'sine', 0.2, t + 0.08);
+  playTone(440, 0.15, 'sine', 0.15, t + 0.16);
+}
+
+function playHitSound(intensity=1) {
+  if (!audioCtx) return;
+  playNoise(0.06 + intensity * 0.06, 0.3 * intensity);
+  playTone(200 - intensity * 60, 0.1, 'sawtooth', 0.15 * intensity);
+}
+
+function playCritSound() {
+  if (!audioCtx) return;
+  const t = audioCtx.currentTime;
+  playNoise(0.12, 0.4);
+  playTone(880, 0.08, 'square', 0.3, t);
+  playTone(1108.73, 0.15, 'square', 0.35, t + 0.06);
+}
+
+function playHealSound() {
+  if (!audioCtx) return;
+  const notes = [523.25, 659.25, 783.99, 1046.50];
+  notes.forEach((f, i) => playTone(f, 0.25, 'sine', 0.25, audioCtx.currentTime + i * 0.12));
+}
+
+function playFaintSound() {
+  if (!audioCtx) return;
+  const t = audioCtx.currentTime;
+  const osc = audioCtx.createOscillator();
+  const g = audioCtx.createGain();
+  osc.type = 'square';
+  osc.frequency.setValueAtTime(600, t);
+  osc.frequency.exponentialRampToValueAtTime(80, t + 0.8);
+  g.gain.setValueAtTime(0.25, t);
+  g.gain.exponentialRampToValueAtTime(0.001, t + 0.8);
+  osc.connect(g); g.connect(sfxGain);
+  osc.start(t); osc.stop(t + 0.85);
+}
+
+function playRumble(duration=3) {
+  if (!audioCtx) return;
+  const t = audioCtx.currentTime;
+  const osc = audioCtx.createOscillator();
+  const g = audioCtx.createGain();
+  osc.type = 'sawtooth';
+  osc.frequency.setValueAtTime(25, t);
+  g.gain.setValueAtTime(0.001, t);
+  g.gain.linearRampToValueAtTime(0.35, t + duration * 0.7);
+  g.gain.linearRampToValueAtTime(0.001, t + duration);
+  osc.connect(g); g.connect(sfxGain);
+  osc.start(t); osc.stop(t + duration + 0.05);
+}
+
+function playSomberMusic() {
+  if (!audioCtx) return;
+  const t = audioCtx.currentTime;
+  const notes = [164.81, 130.81, 110.00, 82.41, 110.00, 82.41];
+  notes.forEach((f, i) => {
+    playTone(f, 1.2, 'sine', 0.15, t + i * 1.0, musicGain);
+    playTone(f * 2, 1.0, 'triangle', 0.08, t + i * 1.0 + 0.2, musicGain);
+  });
+}
+
+function playVictoryFanfare() {
+  if (!audioCtx) return;
+  const t = audioCtx.currentTime;
+  const melody = [523.25,523.25,523.25,523.25,415.30,466.16,523.25,0,466.16,523.25];
+  const durs =   [0.15,  0.15,  0.15,  0.4,   0.15,  0.15,  0.6,  0.2,0.15,  0.8];
+  let offset = 0;
+  melody.forEach((f, i) => {
+    if (f > 0) {
+      playTone(f, durs[i] * 0.9, 'square', 0.3, t + offset, musicGain);
+      playTone(f / 2, durs[i] * 0.9, 'triangle', 0.15, t + offset, musicGain);
+    }
+    offset += durs[i];
+  });
+}
+
+// ============================================================
+// BATTLE MUSIC - Procedural 8-bit
+// ============================================================
+let musicPlaying = false;
+let musicTimer = null;
+let nextLoopTime = 0;
+
+const N = {
+  E2:82.41,Fs2:92.50,G2:98.00,A2:110.00,B2:123.47,
+  C3:130.81,Ds3:155.56,D3:146.83,E3:164.81,Fs3:185.00,G3:196.00,A3:220.00,
+  B3:246.94,C4:261.63,D4:293.66,Ds4:311.13,E4:329.63,Fs4:369.99,G4:392.00,
+  A4:440.00,B4:493.88,C5:523.25,D5:587.33,Ds5:622.25,E5:659.25,Fs5:739.99,G5:783.99,
+  0:0
+};
+
+function startBattleMusic() {
+  if (musicPlaying) return;
+  musicPlaying = true;
+  musicGain.gain.setValueAtTime(0.35, audioCtx.currentTime);
+
+  const bpm = 170;
+  const step = 60 / bpm / 4; // 16th note
+  const barSteps = 16;
+  const bars = 4;
+  const loopDur = step * barSteps * bars;
+
+  function scheduleLoop(startT) {
+    if (!musicPlaying) return;
+
+    // Bass (square, low)
+    const bass = [
+      // Bar 1 - Em
+      [N.E2,0],[0,1],[N.E2,2],[N.E3,3],[N.E2,4],[0,5],[N.E2,6],[N.E3,7],
+      [N.E2,8],[0,9],[N.E2,10],[N.B2,11],[N.E2,12],[N.G2,13],[N.B2,14],[N.E3,15],
+      // Bar 2 - C
+      [N.C3,16],[0,17],[N.C3,18],[N.G2,19],[N.C3,20],[0,21],[N.C3,22],[N.G2,23],
+      [N.C3,24],[0,25],[N.E3,26],[N.C3,27],[N.G2,28],[N.C3,29],[N.E3,30],[N.G3,31],
+      // Bar 3 - D
+      [N.D3,32],[0,33],[N.D3,34],[N.A2,35],[N.D3,36],[0,37],[N.D3,38],[N.A2,39],
+      [N.D3,40],[0,41],[N.Fs3,42],[N.D3,43],[N.A2,44],[N.D3,45],[N.Fs3,46],[N.A3,47],
+      // Bar 4 - B
+      [N.B2,48],[0,49],[N.B2,50],[N.Fs2,51],[N.B2,52],[0,53],[N.B2,54],[N.Fs2,55],
+      [N.B2,56],[N.Ds3,57],[N.Fs3,58],[N.B2,59],[N.E2,60],[N.E2,61],[N.E3,62],[N.E2,63]
+    ];
+    bass.forEach(([freq, s]) => {
+      if (freq > 0) playTone(freq, step * 0.85, 'square', 0.12, startT + s * step, musicGain);
+    });
+
+    // Lead melody (square, higher)
+    const lead = [
+      // Bar 1 - Em
+      [N.E5,0,2],[N.D5,2,2],[N.B4,4,2],[N.G4,6,1],[N.A4,7,1],
+      [N.B4,8,2],[N.E5,10,1],[N.D5,11,1],[N.B4,12,2],[N.G4,14,2],
+      // Bar 2 - C
+      [N.E4,16,2],[N.G4,18,2],[N.C5,20,2],[N.B4,22,1],[N.G4,23,1],
+      [N.A4,24,2],[N.G4,26,2],[N.E4,28,2],[N.G4,30,2],
+      // Bar 3 - D
+      [N.Fs4,32,2],[N.A4,34,2],[N.D5,36,2],[N.E5,38,1],[N.D5,39,1],
+      [N.A4,40,2],[N.Fs4,42,2],[N.D4,44,2],[N.Fs4,46,2],
+      // Bar 4 - B
+      [N.Ds4,48,2],[N.Fs4,50,2],[N.B4,52,2],[N.Ds5,54,1],[N.B4,55,1],
+      [N.Fs4,56,2],[N.E4,58,2],[N.Ds4,60,1],[N.E4,61,1],[N.Fs4,62,2]
+    ];
+    lead.forEach(([freq, s, dur]) => {
+      if (freq > 0) playTone(freq, step * dur * 0.8, 'square', 0.1, startT + s * step, musicGain);
+    });
+
+    // Arpeggios (pulse-ish via triangle)
+    const arpChords = [
+      [N.E4, N.G4, N.B4, N.E5],  // Em
+      [N.C4, N.E4, N.G4, N.C5],  // C
+      [N.D4, N.Fs4, N.A4, N.D5], // D
+      [N.B3, N.Ds4, N.Fs4, N.B4] // B
+    ];
+    for (let bar = 0; bar < 4; bar++) {
+      const chord = arpChords[bar];
+      for (let i = 0; i < 16; i++) {
+        const noteIdx = i % 4;
+        const s = bar * 16 + i;
+        playTone(chord[noteIdx], step * 0.6, 'sawtooth', 0.04, startT + s * step, musicGain);
+      }
+    }
+
+    // Drums
+    for (let bar = 0; bar < 4; bar++) {
+      for (let i = 0; i < 16; i++) {
+        const s = bar * 16 + i;
+        const t = startT + s * step;
+        // Hi-hat every other step
+        if (i % 2 === 0) playNoise(0.03, 0.06, t, musicGain);
+        // Kick
+        if (i === 0 || i === 6 || i === 8 || i === 12) {
+          const osc = audioCtx.createOscillator();
+          const g = audioCtx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(150, t);
+          osc.frequency.exponentialRampToValueAtTime(30, t + 0.12);
+          g.gain.setValueAtTime(0.2, t);
+          g.gain.exponentialRampToValueAtTime(0.001, t + 0.12);
+          osc.connect(g); g.connect(musicGain);
+          osc.start(t); osc.stop(t + 0.13);
+        }
+        // Snare
+        if (i === 4 || i === 12) {
+          playNoise(0.08, 0.12, t, musicGain);
+          playTone(200, 0.05, 'triangle', 0.08, t, musicGain);
+        }
+      }
+    }
+
+    nextLoopTime = startT + loopDur;
+    musicTimer = setTimeout(() => scheduleLoop(nextLoopTime), (loopDur - 0.1) * 1000);
+  }
+
+  scheduleLoop(audioCtx.currentTime + 0.05);
+}
+
+function stopBattleMusic() {
+  musicPlaying = false;
+  if (musicTimer) { clearTimeout(musicTimer); musicTimer = null; }
+  if (audioCtx && musicGain) {
+    try { musicGain.gain.cancelScheduledValues(audioCtx.currentTime); } catch(e) {}
+    musicGain.gain.linearRampToValueAtTime(0.001, audioCtx.currentTime + 0.8);
+  }
+}
+
+// ============================================================
+// GAME STATE
+// ============================================================
+let gameState = {
+  selectedStarter: null,
+  party: [],
+  mewtwo: null,
+  mewtwoRecoverCount: 0,
+  battleStats: { damageDealt: 0, pokemonRemaining: 0, mvp: null, mvpDamage: {} },
+  isRematch: false
+};
+
+function createPokemon(key) {
+  const d = STARTERS_DATA[key];
+  return {
+    key,
+    id: d.id,
+    name: d.name,
+    types: [...d.types],
+    maxHp: d.maxHp,
+    currentHp: d.maxHp,
+    atk: d.atk,
+    def: d.def,
+    spd: d.spd,
+    moves: d.moves.map(m => ({...m})),
+    isPlayer: true
+  };
+}
+
+function createMewtwo() {
+  const d = MEWTWO_DATA;
+  return {
+    id: d.id,
+    name: d.name,
+    types: [...d.types],
+    maxHp: d.maxHp,
+    currentHp: d.maxHp,
+    atk: d.atk,
+    def: d.def,
+    spd: d.spd,
+    moves: d.moves.map(m => ({...m})),
+    isPlayer: false
+  };
+}
+
+// ============================================================
+// DOM & ANIMATION HELPERS
+// ============================================================
+const $ = (sel, ctx=document) => ctx.querySelector(sel);
+const $$ = (sel, ctx=document) => [...ctx.querySelectorAll(sel)];
+const sceneEl = () => document.getElementById('scene');
+const overlayEl = () => document.getElementById('overlay');
+
+function el(tag, attrs={}, children=[]) {
+  const e = document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs)) {
+    if (k === 'className') e.className = v;
+    else if (k === 'style' && typeof v === 'object') Object.assign(e.style, v);
+    else if (k === 'textContent') e.textContent = v;
+    else if (k === 'innerHTML') e.innerHTML = v;
+    else if (k.startsWith('on')) e.addEventListener(k.slice(2).toLowerCase(), v);
+    else e.setAttribute(k, v);
+  }
+  for (const c of children) {
+    if (typeof c === 'string') e.appendChild(document.createTextNode(c));
+    else if (c) e.appendChild(c);
+  }
+  return e;
+}
+
+const wait = ms => new Promise(r => setTimeout(r, ms));
+
+function screenShake(intensity='small', duration=400) {
+  const game = document.getElementById('game');
+  game.style.animation = `shake-${intensity} ${Math.min(duration/1000, 0.15)}s linear ${Math.ceil(duration/150)}`;
+  setTimeout(() => game.style.animation = '', duration + 50);
+}
+
+function flashScreen(color='white', duration=200) {
+  const ov = overlayEl();
+  ov.style.transition = 'none';
+  ov.style.background = color;
+  ov.style.opacity = '0.7';
+  void ov.offsetWidth; // force reflow
+  ov.style.transition = `opacity ${duration}ms`;
+  ov.style.opacity = '0';
+  setTimeout(() => { ov.style.background = ''; }, duration + 50);
+}
+
+async function typeText(element, text, speed=40) {
+  element.textContent = '';
+  for (const ch of text) {
+    element.textContent += ch;
+    await wait(speed);
+  }
+}
+
+async function fadeInElement(el, duration=500) {
+  el.style.transition = `opacity ${duration}ms`;
+  el.style.opacity = '0';
+  await wait(20);
+  el.style.opacity = '1';
+  await wait(duration);
+}
+
+async function fadeOutElement(el, duration=500) {
+  el.style.transition = `opacity ${duration}ms`;
+  el.style.opacity = '0';
+  await wait(duration);
+}
+
+function clearScene() {
+  sceneEl().innerHTML = '';
+}
+
+// ============================================================
+// SCENE: START SCREEN
+// ============================================================
+function showStartScreen() {
+  return new Promise(resolve => {
+    clearScene();
+    const scene = el('div', { className: 'scene active start-screen' }, [
+      el('div', { className: 'title', textContent: 'POKEMON' }),
+      el('div', {
+        style: { color: '#ccc', fontSize: 'clamp(1rem, 2.5vw, 1.6rem)', marginBottom: '10px', letterSpacing: '3px' },
+        textContent: 'THE LAST STAND'
+      }),
+      el('div', { className: 'subtitle', textContent: 'Click anywhere to begin' })
+    ]);
+    sceneEl().appendChild(scene);
+    const handler = () => {
+      document.removeEventListener('click', handler);
+      initAudio();
+      resolve();
+    };
+    document.addEventListener('click', handler);
+  });
+}
+
+// ============================================================
+// SCENE: INTRO
+// ============================================================
+async function runIntro() {
+  clearScene();
+  const scene = el('div', { className: 'scene active', style: { background: '#000' } });
+  sceneEl().appendChild(scene);
+
+  // Line 1
+  const line1 = el('div', { className: 'fade-text', textContent: 'The world was at peace...' });
+  scene.appendChild(line1);
+  await wait(300);
+  line1.classList.add('visible');
+  await wait(2500);
+
+  // Line 2
+  const line2 = el('div', { className: 'fade-text dramatic', textContent: "Until it wasn't." });
+  scene.appendChild(line2);
+  await wait(300);
+  line2.classList.add('visible');
+  await wait(2000);
+
+  // Shake + clear text
+  screenShake('large', 1200);
+  playBassHit();
+  await wait(600);
+  await fadeOutElement(line1, 400);
+  await fadeOutElement(line2, 400);
+  line1.remove(); line2.remove();
+  await wait(500);
+
+  // Legendary silhouettes
+  const container = el('div', { className: 'legendary-container' });
+  scene.appendChild(container);
+
+  for (const legend of LEGENDARIES) {
+    const wrapper = el('div', { className: 'legendary' }, [
+      el('img', { src: spriteUrl(legend.id), alt: legend.name })
+    ]);
+    container.appendChild(wrapper);
+    await wait(200);
+    flashScreen('rgba(100,150,255,0.6)', 300);
+    playBassHit();
+    screenShake('medium', 500);
+    wrapper.classList.add('revealed');
+    await wait(1300);
+  }
+
+  // Silence
+  await wait(2000);
+
+  // Clear legendaries
+  await fadeOutElement(container, 800);
+  container.remove();
+
+  // Oak
+  const oakContainer = el('div', { style: { textAlign: 'center', opacity: '0', transition: 'opacity 1.5s' } });
+  const oakText = el('div', { className: 'oak-text' }, [
+    el('div', { textContent: 'PROFESSOR OAK', style: { color: '#fff', fontSize: 'clamp(1.2rem, 2.5vw, 1.6rem)', marginBottom: '20px', letterSpacing: '3px' } }),
+    el('div', { textContent: '"The world needs you. You are our last hope."' })
+  ]);
+  oakContainer.appendChild(oakText);
+  const continueBtn = el('button', { className: 'btn', textContent: 'I understand' });
+  oakContainer.appendChild(continueBtn);
+  scene.appendChild(oakContainer);
+
+  await wait(100);
+  oakContainer.style.opacity = '1';
+  playConfirmSound();
+
+  await new Promise(resolve => continueBtn.addEventListener('click', () => {
+    playSelectSound();
+    resolve();
+  }));
+
+  await fadeOutElement(scene, 600);
+}
+
+// ============================================================
+// SCENE: STARTER SELECTION
+// ============================================================
+async function runSelection() {
+  clearScene();
+  const scene = el('div', { className: 'scene active', style: { background: 'linear-gradient(180deg, #050510 0%, #0a0a1a 100%)' } });
+
+  const title = el('div', {
+    style: { fontSize: 'clamp(1rem, 2.5vw, 1.6rem)', color: '#ffd700', letterSpacing: '3px', marginBottom: '10px', marginTop: '20px', opacity: '0', transition: 'opacity 1s' },
+    textContent: 'CHOOSE YOUR PARTNER'
+  });
+  scene.appendChild(title);
+
+  const subtitle = el('div', {
+    style: { fontSize: 'clamp(0.7rem, 1.5vw, 0.9rem)', color: '#888', marginBottom: '20px', opacity: '0', transition: 'opacity 1s' },
+    textContent: 'Only one can stand against the darkness'
+  });
+  scene.appendChild(subtitle);
+
+  const container = el('div', { className: 'selection-container' });
+  scene.appendChild(container);
+
+  sceneEl().appendChild(scene);
+  await wait(100);
+  title.style.opacity = '1';
+  await wait(300);
+  subtitle.style.opacity = '1';
+
+  const keys = ['charizard', 'rayquaza', 'pikachu'];
+  const cards = [];
+
+  return new Promise(resolve => {
+    keys.forEach((key, idx) => {
+      const data = STARTERS_DATA[key];
+      const moveList = data.moves.map(m => {
+        let info = `${m.name} (${m.type.toUpperCase()} ${m.power})`;
+        if (m.recoil) info += ' [recoil]';
+        if (m.priority) info += ' [priority]';
+        if (m.accuracy < 100) info += ` [${m.accuracy}%]`;
+        return info;
+      }).join('<br>');
+
+      const card = el('div', { className: 'starter-card', style: { opacity: '0', transition: 'all 0.6s ease', transitionDelay: `${idx * 0.2}s` } }, [
+        el('img', { src: artUrl(data.id), alt: data.name }),
+        el('div', { className: 'starter-name', textContent: data.name }),
+        el('div', { className: 'starter-types' },
+          data.types.map(t => el('span', { className: `type-badge type-${t}`, textContent: t }))
+        ),
+        el('div', { className: 'hp-stat', textContent: `HP: ${data.maxHp}` }),
+        el('div', { className: 'move-list', innerHTML: moveList })
+      ]);
+
+      card.addEventListener('click', async () => {
+        playSelectSound();
+        flashScreen('rgba(255,215,0,0.5)', 400);
+        screenShake('small', 300);
+        card.classList.add('selected');
+
+        cards.forEach((c, i) => {
+          if (i !== idx) c.classList.add('dismissed');
+        });
+
+        await wait(1200);
+        await fadeOutElement(scene, 600);
+        resolve(key);
+      });
+
+      container.appendChild(card);
+      cards.push(card);
+
+      setTimeout(() => { card.style.opacity = '1'; }, 100);
+    });
+  });
+}
+
+// ============================================================
+// SCENE: MEWTWO ENTRANCE
+// ============================================================
+async function runEntrance() {
+  clearScene();
+  const scene = el('div', { className: 'scene active entrance-scene' });
+  sceneEl().appendChild(scene);
+
+  // Black screen + rumble
+  await wait(500);
+  playRumble(3.5);
+  screenShake('small', 3500);
+
+  // Build city
+  const cityContainer = el('div', { className: 'city-container' });
+  scene.appendChild(cityContainer);
+  const buildings = [];
+  const bCount = 12;
+  for (let i = 0; i < bCount; i++) {
+    const h = 60 + Math.random() * 120;
+    const w = 30 + Math.random() * 50;
+    const b = el('div', { className: 'building', style: {
+      width: w + 'px', height: h + 'px',
+      left: (i / bCount * 100) + '%',
+      background: `linear-gradient(180deg, #1a1a2e, #0d0d1a)`,
+      borderColor: '#333'
+    }});
+    // Windows
+    for (let row = 0; row < Math.floor(h / 25); row++) {
+      for (let col = 0; col < Math.floor(w / 18); col++) {
+        const win = el('div', { style: {
+          position: 'absolute',
+          width: '6px', height: '8px',
+          background: Math.random() > 0.3 ? '#ffee88' : '#333',
+          left: (8 + col * 18) + 'px',
+          top: (10 + row * 25) + 'px',
+          opacity: '0.7'
+        }});
+        b.appendChild(win);
+      }
+    }
+    cityContainer.appendChild(b);
+    buildings.push(b);
+  }
+
+  await wait(1500);
+
+  // Buildings crumble
+  for (let i = 0; i < buildings.length; i++) {
+    setTimeout(() => {
+      buildings[i].classList.add('crumble');
+      if (i % 3 === 0) {
+        screenShake('medium', 400);
+        playHitSound(0.5);
+      }
+    }, i * 200 + Math.random() * 300);
+  }
+
+  // Fire
+  const fireContainer = el('div', { className: 'fire-container' });
+  const fireBar = el('div', { className: 'fire-bar' });
+  fireContainer.appendChild(fireBar);
+  scene.appendChild(fireContainer);
+  await wait(800);
+  fireBar.classList.add('active');
+
+  // Fleeing Pokemon
+  for (let wave = 0; wave < 3; wave++) {
+    for (const pid of FLEE_POKEMON) {
+      const fleePoke = el('div', { className: 'flee-pokemon', style: {
+        bottom: (80 + Math.random() * 60) + 'px',
+        animation: `flee ${1.5 + Math.random()}s linear forwards`,
+        animationDelay: `${wave * 0.8 + Math.random() * 0.5}s`
+      }}, [el('img', { src: spriteUrl(pid) })]);
+      scene.appendChild(fleePoke);
+    }
+  }
+
+  await wait(3500);
+  screenShake('large', 1000);
+  await wait(1500);
+
+  // Silence - stop shaking, fade fire
+  fireBar.classList.remove('active');
+  await wait(1500);
+
+  // Purple glow
+  const glow = el('div', { className: 'mewtwo-glow' });
+  scene.appendChild(glow);
+  await wait(200);
+  glow.style.opacity = '1';
+  await wait(1000);
+
+  // Mewtwo sprite
+  const mewtwoSprite = el('div', { className: 'mewtwo-entrance-sprite' }, [
+    el('img', { src: artUrl(150) })
+  ]);
+  scene.appendChild(mewtwoSprite);
+  await wait(500);
+  mewtwoSprite.style.opacity = '1';
+  flashScreen('rgba(160,60,255,0.5)', 600);
+  screenShake('medium', 600);
+  playBassHit();
+  await wait(1500);
+
+  // Text
+  const txt = el('div', { className: 'entrance-text', textContent: 'MEWTWO has descended.' });
+  scene.appendChild(txt);
+  await wait(300);
+  txt.style.opacity = '1';
+  await wait(2000);
+
+  // Start battle music
+  startBattleMusic();
+  await wait(1000);
+  await fadeOutElement(scene, 800);
+}
+
+// ============================================================
+// BATTLE ENGINE
+// ============================================================
+function calcDamage(attacker, defender, move) {
+  if (move.heal) return 0;
+  const level = 100;
+  const power = move.power;
+  const A = attacker.atk;
+  const D = defender.def;
+  let base = ((2 * level / 5 + 2) * power * A / D) / 50 + 2;
+
+  // STAB
+  const stab = attacker.types.includes(move.type) ? 1.5 : 1;
+
+  // Type effectiveness
+  const eff = getTypeEffectiveness(move.type, defender.types);
+
+  // Critical hit
+  const critRoll = Math.random();
+  const isCrit = critRoll < 0.0625;
+  const crit = isCrit ? 1.5 : 1;
+
+  // Random factor
+  const rand = 0.85 + Math.random() * 0.15;
+
+  const damage = Math.floor(base * stab * eff * crit * rand);
+  return { damage: eff === 0 ? 0 : Math.max(1, damage), effectiveness: eff, isCrit, stab };
+}
+
+function mewtwoAI(mewtwo, playerPokemon) {
+  // Recover when below 30% HP (max 2 times)
+  const recoverMove = mewtwo.moves.find(m => m.heal);
+  if (mewtwo.currentHp < mewtwo.maxHp * 0.3 && gameState.mewtwoRecoverCount < 2 && recoverMove && recoverMove.pp > 0) {
+    return recoverMove;
+  }
+
+  // Find super-effective moves
+  const attackMoves = mewtwo.moves.filter(m => !m.heal && m.pp > 0);
+  let bestMove = null;
+  let bestScore = -1;
+
+  for (const m of attackMoves) {
+    const eff = getTypeEffectiveness(m.type, playerPokemon.types);
+    const stab = mewtwo.types.includes(m.type) ? 1.5 : 1;
+    const score = m.power * eff * stab;
+    if (score > bestScore) {
+      bestScore = score;
+      bestMove = m;
+    }
+  }
+
+  if (bestMove) return bestMove;
+
+  // Fallback: random available move
+  const available = mewtwo.moves.filter(m => m.pp > 0);
+  return available[Math.floor(Math.random() * available.length)] || mewtwo.moves[0];
+}
+
+// ============================================================
+// CANVAS BATTLE FX SYSTEM
+// ============================================================
+function fxFireBurst(cx, cy, radius=120) {
+  const ps = Array.from({length:40}, () => ({
+    a: Math.random()*Math.PI*2, spd: 0.25+Math.random()*0.75,
+    sz: 3+Math.random()*12, hue: 10+Math.random()*35
+  }));
+  return { duration: 1000, draw(ctx, t) {
+    ps.forEach(p => {
+      const d = t*radius*p.spd;
+      const x = cx+Math.cos(p.a)*d, y = cy+Math.sin(p.a)*d - t*50;
+      const al = Math.max(0,1-t*1.2), s = p.sz*(1+t*0.5)*(1-t*0.7);
+      if (s <= 0) return;
+      ctx.globalAlpha = al*0.3;
+      ctx.fillStyle = `hsl(${p.hue},100%,60%)`;
+      ctx.beginPath(); ctx.arc(x,y,s*2.5,0,Math.PI*2); ctx.fill();
+      ctx.globalAlpha = al;
+      ctx.beginPath(); ctx.arc(x,y,s,0,Math.PI*2); ctx.fill();
+    });
+    ctx.globalAlpha = 1;
+  }};
+}
+
+function fxLightning(x1, y1, x2, y2, bolts=3) {
+  const dx=x2-x1, dy=y2-y1, len=Math.sqrt(dx*dx+dy*dy)||1;
+  const px=-dy/len, py=dx/len;
+  const paths = Array.from({length:bolts}, () => {
+    const n = 10+Math.floor(Math.random()*6), segs = [];
+    for (let i=0;i<=n;i++) {
+      const t=i/n, spread = 50*(1-Math.abs(t-0.5)*2);
+      segs.push({ x:x1+dx*t+(Math.random()-0.5)*spread*px, y:y1+dy*t+(Math.random()-0.5)*spread*py });
+    }
+    return segs;
+  });
+  return { duration: 700, draw(ctx, t) {
+    const drawT=Math.min(t*2.5,1), fade=Math.max(0,1-Math.max(0,t-0.35)*3);
+    paths.forEach((path,pi) => {
+      const vis=Math.floor(path.length*Math.min(1,(drawT-pi*0.08)*1.5));
+      if (vis<2) return;
+      ctx.globalAlpha=fade;
+      ctx.save();
+      ctx.shadowColor='#ffff44'; ctx.shadowBlur=25;
+      ctx.strokeStyle='#ffffaa'; ctx.lineWidth=5; ctx.lineCap='round';
+      ctx.beginPath(); ctx.moveTo(path[0].x,path[0].y);
+      for (let i=1;i<vis;i++) ctx.lineTo(path[i].x,path[i].y);
+      ctx.stroke();
+      ctx.strokeStyle='#ffffff'; ctx.lineWidth=2;
+      ctx.beginPath(); ctx.moveTo(path[0].x,path[0].y);
+      for (let i=1;i<vis;i++) ctx.lineTo(path[i].x,path[i].y);
+      ctx.stroke();
+      ctx.restore();
+    });
+    ctx.globalAlpha=1;
+  }};
+}
+
+function fxEnergyBall(sx, sy, ex, ey, color, size=20) {
+  return { duration: 550, draw(ctx, t) {
+    const x=sx+(ex-sx)*t, y=sy+(ey-sy)*t+Math.sin(t*Math.PI*4)*18;
+    const al=t<0.85?1:(1-t)*6.7;
+    // Trail
+    for (let i=1;i<=6;i++) {
+      const tt=Math.max(0,t-i*0.025);
+      const tx=sx+(ex-sx)*tt, ty=sy+(ey-sy)*tt+Math.sin(tt*Math.PI*4)*18;
+      ctx.globalAlpha=al*(1-i/6)*0.35;
+      ctx.fillStyle=color;
+      ctx.beginPath(); ctx.arc(tx,ty,size*(1-i*0.1),0,Math.PI*2); ctx.fill();
+    }
+    // Glow
+    const grd=ctx.createRadialGradient(x,y,0,x,y,size*3);
+    grd.addColorStop(0,color+'99'); grd.addColorStop(1,color+'00');
+    ctx.globalAlpha=al*0.5; ctx.fillStyle=grd;
+    ctx.beginPath(); ctx.arc(x,y,size*3,0,Math.PI*2); ctx.fill();
+    // Core
+    ctx.globalAlpha=al; ctx.fillStyle=color;
+    ctx.beginPath(); ctx.arc(x,y,size,0,Math.PI*2); ctx.fill();
+    ctx.fillStyle='#fff'; ctx.beginPath(); ctx.arc(x,y,size*0.35,0,Math.PI*2); ctx.fill();
+    ctx.globalAlpha=1;
+  }};
+}
+
+function fxExplosion(cx, cy, color, size=100) {
+  const ps = Array.from({length:24}, () => ({
+    a:Math.random()*Math.PI*2, spd:0.3+Math.random()*0.7, sz:2+Math.random()*5
+  }));
+  return { duration: 700, draw(ctx, t) {
+    if (t<0.25) {
+      const ft=t/0.25;
+      ctx.globalAlpha=(1-ft)*0.9; ctx.fillStyle='#fff';
+      ctx.beginPath(); ctx.arc(cx,cy,size*0.8*ft,0,Math.PI*2); ctx.fill();
+    }
+    ctx.globalAlpha=Math.max(0,1-t*1.6); ctx.strokeStyle=color; ctx.lineWidth=3*(1-t);
+    ctx.beginPath(); ctx.arc(cx,cy,size*t,0,Math.PI*2); ctx.stroke();
+    if (t>0.1) {
+      ctx.globalAlpha=Math.max(0,1-t*1.6)*0.5; ctx.strokeStyle='#fff'; ctx.lineWidth=1;
+      ctx.beginPath(); ctx.arc(cx,cy,size*t*0.7,0,Math.PI*2); ctx.stroke();
+    }
+    ps.forEach(p => {
+      const d=t*size*1.2*p.spd;
+      ctx.globalAlpha=Math.max(0,1-t*1.4);
+      ctx.fillStyle=color;
+      ctx.beginPath(); ctx.arc(cx+Math.cos(p.a)*d, cy+Math.sin(p.a)*d, p.sz*(1-t*0.7), 0, Math.PI*2); ctx.fill();
+    });
+    ctx.globalAlpha=1;
+  }};
+}
+
+function fxBeam(sx, sy, ex, ey, color, width=18) {
+  return { duration: 800, draw(ctx, t) {
+    const ext=Math.min(t*3,1), fade=t>0.55? (1-(t-0.55)*2.2):1;
+    const bx=sx+(ex-sx)*ext, by=sy+(ey-sy)*ext;
+    ctx.globalAlpha=fade;
+    ctx.save(); ctx.shadowColor=color; ctx.shadowBlur=30;
+    ctx.strokeStyle=color+'66'; ctx.lineWidth=width*3; ctx.lineCap='round';
+    ctx.beginPath(); ctx.moveTo(sx,sy); ctx.lineTo(bx,by); ctx.stroke();
+    ctx.strokeStyle=color; ctx.lineWidth=width;
+    ctx.beginPath(); ctx.moveTo(sx,sy); ctx.lineTo(bx,by); ctx.stroke();
+    ctx.strokeStyle='#ffffffcc'; ctx.lineWidth=width*0.3;
+    ctx.beginPath(); ctx.moveTo(sx,sy); ctx.lineTo(bx,by); ctx.stroke();
+    ctx.restore(); ctx.globalAlpha=1;
+  }};
+}
+
+function fxSlash(sx, sy, ex, ey, color) {
+  return { duration: 450, draw(ctx, t) {
+    const prog=Math.min(t*2.5,1), fade=t>0.4?(1-(t-0.4)*1.67):1;
+    const mx=sx+(ex-sx)*prog, my=sy+(ey-sy)*prog;
+    const angle=Math.atan2(ey-sy,ex-sx);
+    const perpX=-Math.sin(angle)*35, perpY=Math.cos(angle)*35;
+    ctx.globalAlpha=fade;
+    ctx.save(); ctx.shadowColor=color; ctx.shadowBlur=18;
+    ctx.strokeStyle=color; ctx.lineWidth=4; ctx.lineCap='round';
+    ctx.beginPath();
+    ctx.moveTo(sx+perpX*0.3,sy+perpY*0.3);
+    ctx.quadraticCurveTo((sx+mx)/2-perpX*0.5,(sy+my)/2-perpY*0.5, mx,my);
+    ctx.stroke();
+    ctx.strokeStyle='#ffffffbb'; ctx.lineWidth=2;
+    ctx.beginPath();
+    ctx.moveTo(sx+perpX*0.3,sy+perpY*0.3);
+    ctx.quadraticCurveTo((sx+mx)/2-perpX*0.5,(sy+my)/2-perpY*0.5, mx,my);
+    ctx.stroke();
+    ctx.restore(); ctx.globalAlpha=1;
+  }};
+}
+
+function fxWave(color, fromLeft=true) {
+  return { duration: 1400, draw(ctx, t, w, h) {
+    const waveX = fromLeft ? w*(t*1.5-0.25) : w*(1-t*1.5+0.25);
+    const wW=w*0.5, wH=h*0.55;
+    const al = t<0.08?t*12.5 : t>0.75?(1-t)*4 : 1;
+    ctx.globalAlpha=al*0.75; ctx.fillStyle=color;
+    ctx.beginPath(); ctx.moveTo(waveX-wW/2, h);
+    for (let i=0;i<=30;i++) {
+      const px=waveX-wW/2+(wW/30)*i;
+      const py=h-wH+Math.sin(i*0.4+t*12)*25+Math.sin(i*0.7+t*8)*12;
+      ctx.lineTo(px,py);
+    }
+    ctx.lineTo(waveX+wW/2,h); ctx.closePath(); ctx.fill();
+    // Foam
+    ctx.globalAlpha=al*0.6; ctx.fillStyle='#ffffff';
+    for (let i=0;i<15;i++) {
+      const px=waveX-wW/2+(Math.random()*wW);
+      const py=h-wH+Math.sin(px/15+t*12)*25-8;
+      ctx.beginPath(); ctx.arc(px,py,2+Math.random()*5,0,Math.PI*2); ctx.fill();
+    }
+    ctx.globalAlpha=1;
+  }};
+}
+
+function fxScreenDarken(intensity=0.5) {
+  return { duration: 900, draw(ctx, t, w, h) {
+    const al = t<0.25?t/0.25*intensity : t>0.7?(1-t)/0.3*intensity : intensity;
+    ctx.fillStyle=`rgba(0,0,0,${Math.max(0,al)})`; ctx.fillRect(0,0,w,h);
+  }};
+}
+
+function fxChargeGlow(cx, cy, color) {
+  const rings = Array.from({length:5},(_,i)=>({ delay:i*0.12, size:25+i*8 }));
+  return { duration: 600, draw(ctx, t) {
+    rings.forEach(r => {
+      const rt=Math.max(0,(t-r.delay)/(1-r.delay));
+      if (rt<=0) return;
+      const radius=r.size*(0.5+rt*0.5);
+      const al=rt<0.5?rt*2:(1-rt)*2;
+      const grd=ctx.createRadialGradient(cx,cy,0,cx,cy,radius);
+      grd.addColorStop(0,color+'88'); grd.addColorStop(1,color+'00');
+      ctx.globalAlpha=al*0.7; ctx.fillStyle=grd;
+      ctx.beginPath(); ctx.arc(cx,cy,radius,0,Math.PI*2); ctx.fill();
+    });
+    ctx.globalAlpha=1;
+  }};
+}
+
+function fxSparkles(cx, cy, color='#44ff88') {
+  const sparks = Array.from({length:14},()=>({
+    x:cx+(Math.random()-0.5)*70, y:cy+(Math.random()-0.5)*50,
+    delay:Math.random()*0.4, sz:2+Math.random()*4
+  }));
+  return { duration: 1100, draw(ctx, t) {
+    sparks.forEach(s => {
+      const st=Math.max(0,(t-s.delay)/(1-s.delay));
+      if (st<=0) return;
+      const y=s.y-st*60;
+      const al=st<0.3?st/0.3:(1-st)*1.43;
+      ctx.globalAlpha=Math.max(0,al);
+      ctx.fillStyle=color;
+      ctx.beginPath(); ctx.arc(s.x,y,s.sz*(1-st*0.4),0,Math.PI*2); ctx.fill();
+      ctx.fillStyle='#fff';
+      ctx.beginPath(); ctx.arc(s.x,y,s.sz*0.3,0,Math.PI*2); ctx.fill();
+    });
+    ctx.globalAlpha=1;
+  }};
+}
+
+function fxPsychicWaves(cx, cy, color='#ff55aa') {
+  return { duration: 900, draw(ctx, t) {
+    for (let i=0;i<4;i++) {
+      const rt=Math.max(0,(t-i*0.15)/(1-i*0.15));
+      if (rt<=0||rt>=1) continue;
+      const r=30+rt*120;
+      ctx.globalAlpha=Math.max(0,(1-rt)*0.6);
+      ctx.strokeStyle=color; ctx.lineWidth=3*(1-rt);
+      ctx.beginPath(); ctx.arc(cx,cy,r,0,Math.PI*2); ctx.stroke();
+    }
+    ctx.globalAlpha=1;
+  }};
+}
+
+function fxMultiHit(cx, cy, color, hits=3) {
+  return { duration: 250*hits+300, draw(ctx, t) {
+    const totalDur = 250*hits+300;
+    const ms = t * totalDur;
+    for (let i=0;i<hits;i++) {
+      const hitStart = i*250, hitEnd = hitStart+300;
+      if (ms<hitStart||ms>hitEnd) continue;
+      const ht=(ms-hitStart)/300;
+      const ox=(Math.random()-0.5)*35, oy=(Math.random()-0.5)*35;
+      // Flash
+      if (ht<0.15) {
+        ctx.globalAlpha=(1-ht/0.15)*0.7; ctx.fillStyle='#fff';
+        ctx.beginPath(); ctx.arc(cx+ox,cy+oy,50*ht/0.15,0,Math.PI*2); ctx.fill();
+      }
+      // Ring
+      ctx.globalAlpha=Math.max(0,1-ht*1.5); ctx.strokeStyle=color; ctx.lineWidth=2;
+      ctx.beginPath(); ctx.arc(cx+ox,cy+oy,60*ht,0,Math.PI*2); ctx.stroke();
+    }
+    ctx.globalAlpha=1;
+  }};
+}
+
+// Poke Ball drawing helpers
+function drawPokeball(ctx, x, y, r) {
+  // Red top
+  ctx.fillStyle='#ee1133'; ctx.beginPath(); ctx.arc(x,y,r,Math.PI,0); ctx.fill();
+  // White bottom
+  ctx.fillStyle='#fff'; ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI); ctx.fill();
+  // Black outline
+  ctx.strokeStyle='#222'; ctx.lineWidth=Math.max(1.5,r/6);
+  ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2); ctx.stroke();
+  // Divider line
+  ctx.beginPath(); ctx.moveTo(x-r,y); ctx.lineTo(x+r,y); ctx.stroke();
+  // Center button
+  ctx.fillStyle='#fff'; ctx.beginPath(); ctx.arc(x,y,r*0.32,0,Math.PI*2); ctx.fill();
+  ctx.strokeStyle='#222'; ctx.lineWidth=Math.max(1,r/8);
+  ctx.beginPath(); ctx.arc(x,y,r*0.32,0,Math.PI*2); ctx.stroke();
+  ctx.fillStyle='#ddd'; ctx.beginPath(); ctx.arc(x,y,r*0.15,0,Math.PI*2); ctx.fill();
+}
+
+function drawStar4(ctx, cx, cy, r, color) {
+  ctx.fillStyle=color;
+  ctx.beginPath();
+  for (let i=0;i<8;i++) {
+    const a=(i/8)*Math.PI*2-Math.PI/2;
+    const dist = i%2===0 ? r : r*0.35;
+    const px=cx+Math.cos(a)*dist, py=cy+Math.sin(a)*dist;
+    i===0?ctx.moveTo(px,py):ctx.lineTo(px,py);
+  }
+  ctx.closePath(); ctx.fill();
+}
+
+// Poke Ball throw arc + open + flash
+function fxPokeballThrow(fromX, fromY, toX, toY) {
+  return { duration: 900, draw(ctx, t) {
+    if (t<0.45) {
+      // Arc flight
+      const at=t/0.45;
+      const x=fromX+(toX-fromX)*at;
+      const y=fromY+(toY-fromY)*at - Math.sin(at*Math.PI)*90;
+      ctx.save(); ctx.translate(x,y); ctx.rotate(at*Math.PI*5);
+      drawPokeball(ctx,0,0,11); ctx.restore();
+    } else if (t<0.6) {
+      // Ball lands + opens
+      const ot=(t-0.45)/0.15;
+      const ballScale=1-ot*0.8;
+      if (ballScale>0.1) { ctx.save(); ctx.translate(toX,toY); ctx.scale(ballScale,ballScale); drawPokeball(ctx,0,0,11); ctx.restore(); }
+      // White flash burst
+      const flashR=20+ot*70;
+      ctx.globalAlpha=(1-ot*0.5)*0.9;
+      const grd=ctx.createRadialGradient(toX,toY,0,toX,toY,flashR);
+      grd.addColorStop(0,'#ffffffee'); grd.addColorStop(0.6,'#ffffffaa'); grd.addColorStop(1,'#ffffff00');
+      ctx.fillStyle=grd; ctx.beginPath(); ctx.arc(toX,toY,flashR,0,Math.PI*2); ctx.fill();
+      ctx.globalAlpha=1;
+    } else {
+      // White energy dissipating
+      const et=(t-0.6)/0.4;
+      const r=80*(1+et*0.3);
+      ctx.globalAlpha=Math.max(0,(1-et)*0.6);
+      const grd=ctx.createRadialGradient(toX,toY,0,toX,toY,r);
+      grd.addColorStop(0,'#ffffffcc'); grd.addColorStop(1,'#ffffff00');
+      ctx.fillStyle=grd; ctx.beginPath(); ctx.arc(toX,toY,r,0,Math.PI*2); ctx.fill();
+      ctx.globalAlpha=1;
+    }
+  }};
+}
+
+// Star burst from Poke Ball opening
+function fxStarBurst(cx, cy) {
+  const stars=Array.from({length:10},(_,i)=>({
+    angle:(i/10)*Math.PI*2 + (Math.random()-0.5)*0.3,
+    size:4+Math.random()*5, speed:0.5+Math.random()*0.5,
+    color: i%3===0?'#ffff44':i%3===1?'#ffffff':'#ffddaa',
+    delay: Math.random()*0.1
+  }));
+  return { duration: 800, draw(ctx, t) {
+    stars.forEach(s => {
+      const st=Math.max(0,t-s.delay);
+      if (st<=0) return;
+      const dist=15+st*100*s.speed;
+      const x=cx+Math.cos(s.angle)*dist;
+      const y=cy+Math.sin(s.angle)*dist;
+      const al=st<0.15?st/0.15:Math.max(0,1-(st-0.15)/0.85);
+      const sz=s.size*(1-st*0.4);
+      if (sz<=0) return;
+      ctx.globalAlpha=al;
+      drawStar4(ctx,x,y,sz,s.color);
+      // Glow
+      ctx.globalAlpha=al*0.3;
+      ctx.beginPath(); ctx.arc(x,y,sz*2,0,Math.PI*2);
+      ctx.fillStyle=s.color; ctx.fill();
+    });
+    ctx.globalAlpha=1;
+  }};
+}
+
+// Red recall beam
+function fxRecallBeam(fromX, fromY, toX, toY) {
+  return { duration: 700, draw(ctx, t) {
+    // Beam extends then retracts
+    let headT, tailT;
+    if (t<0.4) { headT=t/0.4; tailT=0; }
+    else { headT=1; tailT=(t-0.4)/0.6; }
+    const hx=fromX+(toX-fromX)*headT, hy=fromY+(toY-fromY)*headT;
+    const tx_=fromX+(toX-fromX)*tailT, ty_=fromY+(toY-fromY)*tailT;
+    const fade=t>0.7?Math.max(0,(1-t)/0.3):1;
+    ctx.globalAlpha=fade;
+    ctx.save(); ctx.shadowColor='#ff2222'; ctx.shadowBlur=18;
+    ctx.strokeStyle='#ff4444'; ctx.lineWidth=7; ctx.lineCap='round';
+    ctx.beginPath(); ctx.moveTo(tx_,ty_); ctx.lineTo(hx,hy); ctx.stroke();
+    ctx.strokeStyle='#ffaaaa'; ctx.lineWidth=3;
+    ctx.beginPath(); ctx.moveTo(tx_,ty_); ctx.lineTo(hx,hy); ctx.stroke();
+    ctx.restore();
+    // Ball glow at origin during recall
+    if (t<0.5) {
+      ctx.globalAlpha=fade*0.5;
+      const grd=ctx.createRadialGradient(fromX,fromY,0,fromX,fromY,18);
+      grd.addColorStop(0,'#ff444488'); grd.addColorStop(1,'#ff000000');
+      ctx.fillStyle=grd; ctx.beginPath(); ctx.arc(fromX,fromY,18,0,Math.PI*2); ctx.fill();
+    }
+    ctx.globalAlpha=1;
+  }};
+}
+
+// Move-specific animation sequences
+const MOVE_ANIMS = {
+  'Blast Burn': async (addFX, w, h, isP) => {
+    const [sx,sy,tx,ty] = isP ? [w*.2,h*.65,w*.75,h*.25] : [w*.8,h*.3,w*.25,h*.7];
+    addFX(fxScreenDarken(0.5));
+    await wait(250);
+    addFX(fxChargeGlow(sx,sy,'#ff4400'));
+    await wait(350);
+    addFX(fxBeam(sx,sy,tx,ty,'#ff4400',28));
+    await wait(250);
+    addFX(fxFireBurst(tx,ty,160));
+    addFX(fxExplosion(tx,ty,'#ff6600',140));
+    screenShake('large',900); flashScreen('#ff4400',450);
+    await wait(700);
+  },
+  'Flare Blitz': async (addFX, w, h, isP) => {
+    const [sx,sy,tx,ty] = isP ? [w*.2,h*.65,w*.75,h*.25] : [w*.8,h*.3,w*.25,h*.7];
+    addFX(fxChargeGlow(sx,sy,'#ff6600'));
+    await wait(200);
+    addFX(fxBeam(sx,sy,tx,ty,'#ff6600',20));
+    addFX(fxFireBurst(sx,sy,60));
+    await wait(250);
+    addFX(fxExplosion(tx,ty,'#ff4400',110));
+    addFX(fxFireBurst(tx,ty,100));
+    screenShake('medium',600); flashScreen('#ff6600',350);
+    await wait(550);
+  },
+  'Dragon Pulse': async (addFX, w, h, isP) => {
+    const [sx,sy,tx,ty] = isP ? [w*.2,h*.65,w*.75,h*.25] : [w*.8,h*.3,w*.25,h*.7];
+    addFX(fxChargeGlow(sx,sy,'#7038f8'));
+    await wait(250);
+    addFX(fxEnergyBall(sx,sy,tx,ty,'#7038f8',28));
+    await wait(450);
+    addFX(fxExplosion(tx,ty,'#9060ff',100));
+    addFX(fxPsychicWaves(tx,ty,'#7038f8'));
+    screenShake('small',400); flashScreen('#7038f8',280);
+    await wait(400);
+  },
+  'Air Slash': async (addFX, w, h, isP) => {
+    const [sx,sy,tx,ty] = isP ? [w*.2,h*.65,w*.75,h*.25] : [w*.8,h*.3,w*.25,h*.7];
+    addFX(fxSlash(sx,sy-20,tx+20,ty+30,'#bbbbff'));
+    await wait(120);
+    addFX(fxSlash(sx+15,sy+15,tx-15,ty-20,'#ddddff'));
+    await wait(180);
+    addFX(fxExplosion(tx,ty,'#aaaaee',75));
+    screenShake('small',300); flashScreen('#ccccff',200);
+    await wait(300);
+  },
+  'Dragon Ascent': async (addFX, w, h, isP) => {
+    const [sx,sy,tx,ty] = isP ? [w*.2,h*.65,w*.75,h*.25] : [w*.8,h*.3,w*.25,h*.7];
+    addFX(fxScreenDarken(0.35));
+    addFX(fxChargeGlow(sx,sy,'#00ddff'));
+    await wait(400);
+    addFX(fxBeam(sx,sy-60,tx,ty,'#00ccff',22));
+    await wait(300);
+    addFX(fxExplosion(tx,ty,'#00ddff',130));
+    addFX(fxFireBurst(tx,ty,90));
+    screenShake('large',700); flashScreen('#00ccff',400);
+    await wait(500);
+  },
+  'Outrage': async (addFX, w, h, isP) => {
+    const [sx,sy,tx,ty] = isP ? [w*.2,h*.65,w*.75,h*.25] : [w*.8,h*.3,w*.25,h*.7];
+    addFX(fxScreenDarken(0.35));
+    await wait(200);
+    addFX(fxMultiHit(tx,ty,'#9040ff',3));
+    for (let i=0;i<3;i++) {
+      screenShake('medium',300); flashScreen('#7038f8',120);
+      await wait(250);
+    }
+    addFX(fxExplosion(tx,ty,'#ff4488',120));
+    screenShake('large',600); flashScreen('#ff2266',350);
+    await wait(450);
+  },
+  'Extreme Speed': async (addFX, w, h, isP) => {
+    const [sx,sy,tx,ty] = isP ? [w*.2,h*.65,w*.75,h*.25] : [w*.8,h*.3,w*.25,h*.7];
+    addFX(fxBeam(sx,sy,tx,ty,'#ffffff',14));
+    await wait(120);
+    addFX(fxExplosion(tx,ty,'#ffffff',85));
+    screenShake('small',350); flashScreen('#ffffff',220);
+    await wait(300);
+  },
+  'V-Create': async (addFX, w, h, isP) => {
+    const [sx,sy,tx,ty] = isP ? [w*.2,h*.65,w*.75,h*.25] : [w*.8,h*.3,w*.25,h*.7];
+    addFX(fxScreenDarken(0.55));
+    await wait(350);
+    addFX(fxChargeGlow(sx,sy,'#ff2200'));
+    await wait(250);
+    addFX(fxBeam(sx,sy,tx-25,ty,'#ff2200',16));
+    addFX(fxBeam(sx,sy,tx+25,ty,'#ff2200',16));
+    await wait(300);
+    addFX(fxFireBurst(tx,ty,190));
+    addFX(fxExplosion(tx,ty,'#ff4400',160));
+    screenShake('large',1100); flashScreen('#ff2200',550);
+    await wait(800);
+  },
+  'Volt Tackle': async (addFX, w, h, isP) => {
+    const [sx,sy,tx,ty] = isP ? [w*.2,h*.65,w*.75,h*.25] : [w*.8,h*.3,w*.25,h*.7];
+    addFX(fxChargeGlow(sx,sy,'#ffdd00'));
+    await wait(250);
+    addFX(fxBeam(sx,sy,tx,ty,'#ffee00',20));
+    addFX(fxLightning(sx,sy,tx,ty,2));
+    await wait(300);
+    addFX(fxExplosion(tx,ty,'#ffdd00',110));
+    screenShake('medium',550); flashScreen('#ffee00',400);
+    await wait(500);
+  },
+  'Thunder': async (addFX, w, h, isP) => {
+    const tx = isP ? w*.75 : w*.25;
+    const ty = isP ? h*.25 : h*.7;
+    addFX(fxScreenDarken(0.55));
+    await wait(450);
+    addFX(fxLightning(tx-15,0,tx+15,ty,4));
+    flashScreen('#ffff00',250); screenShake('medium',450);
+    await wait(350);
+    addFX(fxLightning(tx+20,0,tx-10,ty,2));
+    flashScreen('#ffee00',180);
+    await wait(250);
+    addFX(fxExplosion(tx,ty,'#ffdd00',110));
+    screenShake('large',600);
+    await wait(500);
+  },
+  'Surf': async (addFX, w, h, isP) => {
+    addFX(fxWave('#4488ff',isP));
+    screenShake('medium',700);
+    await wait(700);
+    const tx = isP ? w*.75 : w*.25, ty = isP ? h*.25 : h*.7;
+    addFX(fxExplosion(tx,ty,'#6699ff',90));
+    flashScreen('#4488ff',250);
+    await wait(500);
+  },
+  'Iron Tail': async (addFX, w, h, isP) => {
+    const [sx,sy,tx,ty] = isP ? [w*.2,h*.65,w*.75,h*.25] : [w*.8,h*.3,w*.25,h*.7];
+    addFX(fxChargeGlow(sx,sy,'#ccccdd'));
+    await wait(220);
+    addFX(fxSlash(sx,sy-20,tx,ty+10,'#ddddee'));
+    await wait(250);
+    addFX(fxExplosion(tx,ty,'#aaaacc',90));
+    // Metallic sparks
+    addFX(fxFireBurst(tx,ty,60));
+    screenShake('medium',450); flashScreen('#ccccdd',250);
+    await wait(400);
+  },
+  'Psystrike': async (addFX, w, h, isP) => {
+    const [sx,sy,tx,ty] = isP ? [w*.2,h*.65,w*.75,h*.25] : [w*.8,h*.3,w*.25,h*.7];
+    addFX(fxScreenDarken(0.35));
+    addFX(fxChargeGlow(sx,sy,'#ff55aa'));
+    await wait(350);
+    addFX(fxPsychicWaves(sx,sy,'#ff55aa'));
+    await wait(200);
+    addFX(fxBeam(sx,sy,tx,ty,'#ff55aa',22));
+    await wait(250);
+    addFX(fxExplosion(tx,ty,'#ff77bb',120));
+    addFX(fxPsychicWaves(tx,ty,'#ff55aa'));
+    screenShake('medium',550); flashScreen('#ff55aa',350);
+    await wait(500);
+  },
+  'Shadow Ball': async (addFX, w, h, isP) => {
+    const [sx,sy,tx,ty] = isP ? [w*.2,h*.65,w*.75,h*.25] : [w*.8,h*.3,w*.25,h*.7];
+    addFX(fxChargeGlow(sx,sy,'#553388'));
+    await wait(280);
+    addFX(fxEnergyBall(sx,sy,tx,ty,'#664499',24));
+    await wait(450);
+    addFX(fxExplosion(tx,ty,'#775599',100));
+    screenShake('small',400); flashScreen('#553388',280);
+    await wait(400);
+  },
+  'Aura Sphere': async (addFX, w, h, isP) => {
+    const [sx,sy,tx,ty] = isP ? [w*.2,h*.65,w*.75,h*.25] : [w*.8,h*.3,w*.25,h*.7];
+    addFX(fxChargeGlow(sx,sy,'#3388ff'));
+    await wait(280);
+    addFX(fxEnergyBall(sx,sy,tx,ty,'#3399ff',22));
+    await wait(450);
+    addFX(fxExplosion(tx,ty,'#4488ff',100));
+    screenShake('small',400); flashScreen('#3388ff',280);
+    await wait(400);
+  },
+  'Recover': async (addFX, w, h, isP) => {
+    const cx = isP ? w*.2 : w*.8, cy = isP ? h*.65 : h*.3;
+    addFX(fxSparkles(cx,cy,'#44ff88'));
+    addFX(fxChargeGlow(cx,cy,'#44ff88'));
+    await wait(900);
+  }
+};
+
+// ============================================================
+// SCENE: BATTLE
+// ============================================================
+async function runBattleFull(party) {
+  clearScene();
+  gameState.party = party;
+  gameState.mewtwo = createMewtwo();
+  gameState.mewtwoRecoverCount = 0;
+  gameState.battleStats = { damageDealt: 0, pokemonRemaining: 0, mvp: null, mvpDamage: {} };
+  party.forEach(p => gameState.battleStats.mvpDamage[p.name] = 0);
+
+  let activeIdx = 0;
+  let activePokemon = party[activeIdx];
+
+  const mewtwo = gameState.mewtwo;
+
+  const scene = el('div', { className: 'scene active battle-scene' });
+  const field = el('div', { className: 'battle-field' });
+  const enemyPoke = el('div', { className: 'battle-pokemon enemy-pokemon' }, [
+    el('img', { src: spriteUrl(mewtwo.id), id: 'enemy-sprite' })
+  ]);
+  const enemyHpBox = el('div', { className: 'hp-box enemy-hp-box' }, [
+    el('span', { className: 'hp-name', textContent: mewtwo.name }),
+    el('span', { className: 'hp-level', textContent: 'Lv100' }),
+    el('div', { className: 'hp-bar-outer' }, [
+      el('div', { className: 'hp-bar-inner hp-green', id: 'enemy-hp-bar', style: { width: '100%' } })
+    ]),
+    el('div', { className: 'hp-numbers', id: 'enemy-hp-text', textContent: `${mewtwo.currentHp} / ${mewtwo.maxHp}` })
+  ]);
+  const playerPoke = el('div', { className: 'battle-pokemon player-pokemon' }, [
+    el('img', { src: backUrl(activePokemon.id), id: 'player-sprite' })
+  ]);
+  const playerHpBox = el('div', { className: 'hp-box player-hp-box' }, [
+    el('span', { className: 'hp-name', id: 'player-name', textContent: activePokemon.name }),
+    el('span', { className: 'hp-level', textContent: 'Lv100' }),
+    el('div', { className: 'hp-bar-outer' }, [
+      el('div', { className: 'hp-bar-inner hp-green', id: 'player-hp-bar', style: { width: '100%' } })
+    ]),
+    el('div', { className: 'hp-numbers', id: 'player-hp-text', textContent: `${activePokemon.currentHp} / ${activePokemon.maxHp}` })
+  ]);
+  const msgEl = el('div', { className: 'battle-msg', id: 'battle-msg' });
+  const fxCanvas = el('canvas', { className: 'fx-canvas' });
+  field.append(enemyPoke, enemyHpBox, playerPoke, playerHpBox, msgEl, fxCanvas);
+  scene.appendChild(field);
+
+  // Resize canvas to match field
+  function resizeFX() {
+    const r = field.getBoundingClientRect();
+    if (r.width > 0 && r.height > 0) { fxCanvas.width = r.width; fxCanvas.height = r.height; }
+  }
+  resizeFX();
+  const resizeHandler = () => resizeFX();
+  window.addEventListener('resize', resizeHandler);
+
+  // Canvas FX loop
+  const fxCtx = fxCanvas.getContext('2d');
+  let activeFX = [], fxRunning = false;
+  function addFX(effect) {
+    effect._start = performance.now();
+    activeFX.push(effect);
+    if (!fxRunning) runFxLoop();
+  }
+  function runFxLoop() {
+    fxRunning = true;
+    const now = performance.now();
+    fxCtx.clearRect(0, 0, fxCanvas.width, fxCanvas.height);
+    activeFX = activeFX.filter(e => {
+      const t = (now - e._start) / e.duration;
+      if (t >= 1) return false;
+      e.draw(fxCtx, t, fxCanvas.width, fxCanvas.height);
+      return true;
+    });
+    if (activeFX.length > 0) requestAnimationFrame(runFxLoop);
+    else { fxRunning = false; fxCtx.clearRect(0, 0, fxCanvas.width, fxCanvas.height); }
+  }
+  const movePanel = el('div', { className: 'move-panel', id: 'move-panel' });
+  scene.appendChild(movePanel);
+  const partyBar = el('div', { className: 'party-bar', id: 'party-bar' });
+  scene.appendChild(partyBar);
+  sceneEl().appendChild(scene);
+  await fadeInElement(scene, 500);
+
+  function updateHpBar(who) {
+    const p = who === 'player' ? activePokemon : mewtwo;
+    const pct = Math.max(0, p.currentHp / p.maxHp * 100);
+    const bar = $(`#${who === 'player' ? 'player' : 'enemy'}-hp-bar`);
+    const txt = $(`#${who === 'player' ? 'player' : 'enemy'}-hp-text`);
+    if (bar) {
+      bar.style.width = pct + '%';
+      bar.className = 'hp-bar-inner ' + (pct > 50 ? 'hp-green' : pct > 20 ? 'hp-yellow' : 'hp-red');
+    }
+    if (txt) txt.textContent = `${Math.max(0, p.currentHp)} / ${p.maxHp}`;
+  }
+
+  function updatePartyBar() {
+    partyBar.innerHTML = '';
+    party.forEach((p, i) => {
+      const d = el('div', { className: 'party-dot' });
+      if (p.currentHp <= 0) d.classList.add('fainted');
+      else d.classList.add('alive');
+      if (i === activeIdx) d.classList.add('active');
+      partyBar.appendChild(d);
+    });
+  }
+
+  function refreshPlayer(showSprite=true) {
+    const s = $('#player-sprite');
+    if (s) { s.src = backUrl(activePokemon.id); if (showSprite) s.style.opacity = ''; }
+    const n = $('#player-name');
+    if (n) n.textContent = activePokemon.name;
+    updateHpBar('player');
+    updatePartyBar();
+  }
+
+  async function showMsg(text, dur=1200) {
+    msgEl.textContent = text;
+    msgEl.classList.add('visible');
+    await wait(dur);
+    msgEl.classList.remove('visible');
+    await wait(200);
+  }
+
+  function showDmgNum(target, amount, crit=false, heal=false) {
+    const num = el('div', {
+      className: `damage-num ${heal ? 'heal' : ''} ${crit ? 'crit' : ''}`,
+      textContent: (heal ? '+' : '-') + amount,
+      style: { left: '50%', top: target === 'player' ? '30%' : '50%' }
+    });
+    field.appendChild(num);
+    setTimeout(() => num.remove(), 1100);
+  }
+
+  // Full Restores
+  let fullRestores = 2;
+
+  // ---- Poke Ball Send-Out / Recall Animations ----
+  async function playSendOut(pokeEl, isPlayer) {
+    const sprite = pokeEl.querySelector('img');
+    // Hide sprite initially
+    sprite.style.transition = 'none';
+    sprite.style.opacity = '0';
+    sprite.style.transform = 'translateY(0) scale(0.2)';
+    void sprite.offsetWidth; // force reflow
+
+    resizeFX();
+    const w = fxCanvas.width, h = fxCanvas.height;
+    const fromX = isPlayer ? w*0.02 : w*0.98;
+    const fromY = isPlayer ? h*0.85 : h*0.08;
+    const toX = isPlayer ? w*0.2 : w*0.78;
+    const toY = isPlayer ? h*0.63 : h*0.23;
+
+    // Throw the ball
+    playPokeballSound();
+    addFX(fxPokeballThrow(fromX, fromY, toX, toY));
+    await wait(450);
+
+    // Flash on open
+    flashScreen('#ffffff', 250);
+    await wait(150);
+
+    // Materialize: sprite scales up from center with white glow
+    sprite.style.transition = 'opacity 0.45s ease-out, transform 0.45s ease-out';
+    sprite.style.opacity = '1';
+    sprite.style.transform = 'translateY(0) scale(1)';
+
+    // Star burst
+    addFX(fxStarBurst(toX, toY));
+    await wait(550);
+
+    // Clear ALL inline overrides so CSS takes back control
+    // (idleBob animation + drop-shadow filter from stylesheet)
+    sprite.style.transform = '';
+    sprite.style.opacity = '';
+    sprite.style.filter = '';
+    sprite.style.transition = '';
+  }
+
+  async function playRecall(pokeEl, isPlayer) {
+    const sprite = pokeEl.querySelector('img');
+    resizeFX();
+    const w = fxCanvas.width, h = fxCanvas.height;
+    const fromX = isPlayer ? w*0.02 : w*0.98;
+    const fromY = isPlayer ? h*0.85 : h*0.08;
+    const toX = isPlayer ? w*0.2 : w*0.78;
+    const toY = isPlayer ? h*0.63 : h*0.23;
+
+    playRecallSound();
+    addFX(fxRecallBeam(fromX, fromY, toX, toY));
+    await wait(250);
+
+    // Sprite shrinks into red energy
+    sprite.style.transition = 'opacity 0.35s, transform 0.35s ease-in, filter 0.2s';
+    sprite.style.filter = 'brightness(2) saturate(0) drop-shadow(0 0 15px #ff4444)';
+    sprite.style.transform = 'translateY(0) scale(0.15)';
+    sprite.style.opacity = '0';
+    await wait(450);
+
+    // Clear all inline overrides
+    sprite.style.filter = '';
+    sprite.style.transform = '';
+    sprite.style.opacity = '';
+    sprite.style.transition = '';
+  }
+
+  // ---- Execute Move (with canvas animations) ----
+  async function executeMove(attackerSide, move) {
+    resizeFX();
+    const isPlayer = attackerSide === 'player';
+    const attacker = isPlayer ? activePokemon : mewtwo;
+    const defender = isPlayer ? mewtwo : activePokemon;
+    const attackerEl = isPlayer ? playerPoke : enemyPoke;
+    const defenderEl = isPlayer ? enemyPoke : playerPoke;
+    const defenderSide = isPlayer ? 'enemy' : 'player';
+    const w = fxCanvas.width, h = fxCanvas.height;
+
+    // Move banner
+    const color = TYPE_COLORS[move.type] || '#fff';
+    const bg = el('div', { className: 'move-banner-bg', style: { background: `linear-gradient(90deg, transparent, ${color}44, ${color}22, transparent)` } });
+    const banner = el('div', { className: 'move-banner', textContent: move.name.toUpperCase(), style: { color } });
+    field.appendChild(bg); field.appendChild(banner);
+    setTimeout(() => { banner.remove(); bg.remove(); }, 950);
+
+    await showMsg(`${attacker.name} used ${move.name}!`, 700);
+
+    // Accuracy check
+    if (move.accuracy < 999 && Math.random() * 100 > move.accuracy) {
+      attackerEl.classList.add(isPlayer ? 'attacking-player' : 'attacking-enemy');
+      await wait(400);
+      attackerEl.classList.remove('attacking-player', 'attacking-enemy');
+      await showMsg(`${attacker.name}'s attack missed!`, 1000);
+      move.pp = Math.max(0, move.pp - 1);
+      return { missed: true, damage: 0 };
+    }
+
+    // Heal move
+    if (move.heal) {
+      const amt = Math.floor(attacker.maxHp * 0.5);
+      attacker.currentHp = Math.min(attacker.maxHp, attacker.currentHp + amt);
+      if (!isPlayer) gameState.mewtwoRecoverCount++;
+      const anim = MOVE_ANIMS['Recover'];
+      if (anim) await anim(addFX, w, h, isPlayer);
+      playHealSound();
+      flashScreen('rgba(0,255,100,0.25)', 500);
+      showDmgNum(attackerSide, amt, false, true);
+      updateHpBar(attackerSide);
+      await showMsg(`${attacker.name} recovered health!`, 1000);
+      move.pp = Math.max(0, move.pp - 1);
+      return { healed: true, damage: 0 };
+    }
+
+    // ---- DRAMATIC ATTACK SEQUENCE ----
+
+    // 1. Attacker lunges forward
+    attackerEl.classList.add(isPlayer ? 'attacking-player' : 'attacking-enemy');
+
+    // 2. Move-specific canvas animation (fire, lightning, beams, etc.)
+    const anim = MOVE_ANIMS[move.name] || MOVE_ANIMS['Extreme Speed'];
+    await anim(addFX, w, h, isPlayer);
+
+    attackerEl.classList.remove('attacking-player', 'attacking-enemy');
+
+    // 3. Calculate damage
+    const result = calcDamage(attacker, defender, move);
+    const { damage, effectiveness, isCrit } = result;
+    defender.currentHp = Math.max(0, defender.currentHp - damage);
+    if (isPlayer) {
+      gameState.battleStats.damageDealt += damage;
+      gameState.battleStats.mvpDamage[attacker.name] = (gameState.battleStats.mvpDamage[attacker.name] || 0) + damage;
+    }
+
+    // 4. Hit reaction on defender
+    if (effectiveness > 0 && damage > 0) {
+      defenderEl.classList.add('hit');
+      defenderEl.classList.add('hit-recoil');
+      if (isCrit) playCritSound();
+      else if (effectiveness >= 2) playHitSound(1.5);
+      else playHitSound(0.8);
+      showDmgNum(defenderSide, damage, isCrit);
+      setTimeout(() => { defenderEl.classList.remove('hit','hit-recoil'); }, 400);
+    }
+
+    updateHpBar(defenderSide);
+    await wait(600);
+
+    // 5. Status messages
+    if (isCrit) await showMsg('A critical hit!', 800);
+    if (effectiveness >= 2) await showMsg("It's super effective!", 900);
+    else if (effectiveness > 0 && effectiveness < 1) await showMsg('Not very effective...', 800);
+    else if (effectiveness === 0) await showMsg("It doesn't affect " + defender.name + "...", 800);
+
+    // 6. Recoil
+    if (move.recoil && isPlayer && damage > 0) {
+      const rc = Math.floor(damage * move.recoil);
+      attacker.currentHp = Math.max(0, attacker.currentHp - rc);
+      updateHpBar('player');
+      showDmgNum('player', rc);
+      addFX(fxExplosion(w*0.2, h*0.65, '#ffdd00', 50));
+      screenShake('small', 250);
+      await showMsg(`${attacker.name} was hurt by recoil!`, 800);
+    }
+
+    move.pp = Math.max(0, move.pp - 1);
+    return { damage, effectiveness, isCrit };
+  }
+
+  function renderMovePanel() {
+    movePanel.innerHTML = '';
+    activePokemon.moves.forEach((m, i) => {
+      const btn = el('button', {
+        className: 'move-btn',
+        style: { borderColor: (TYPE_COLORS[m.type] || '#888') + '66' },
+        innerHTML: `<span class="move-name">${m.name}</span><span class="move-pp">${m.pp}/${m.maxPp}</span><br><span class="move-info"><span class="type-badge type-${m.type}" style="font-size:0.6rem;padding:1px 6px">${m.type.toUpperCase()}</span> ${m.power > 0 ? 'PWR ' + m.power : 'STATUS'}${m.accuracy < 100 && m.accuracy < 999 ? ' ACC ' + m.accuracy + '%' : ''}${m.recoil ? ' RECOIL' : ''}${m.priority ? ' PRIORITY' : ''}</span>`
+      });
+      const allExhausted = activePokemon.moves.every(mv => mv.pp <= 0);
+      if (m.pp <= 0 && !allExhausted) btn.disabled = true;
+      btn.dataset.moveIdx = i;
+      movePanel.appendChild(btn);
+    });
+    // Action row: switch + restore
+    const hasSwitch = gameState.isRematch && party.filter((p, i) => i !== activeIdx && p.currentHp > 0).length > 0;
+    if (hasSwitch) {
+      const sb = el('button', { className: 'switch-btn', textContent: 'SWITCH POKEMON' });
+      sb.dataset.action = 'switch';
+      movePanel.appendChild(sb);
+    }
+    // Full Restore button
+    const rb = el('button', {
+      className: 'restore-btn',
+      innerHTML: `<span class="restore-icon">💊</span> FULL RESTORE (${fullRestores} left)`
+    });
+    rb.dataset.action = 'restore';
+    if (fullRestores <= 0 || activePokemon.currentHp >= activePokemon.maxHp) rb.disabled = true;
+    movePanel.appendChild(rb);
+  }
+
+  function getPlayerAction() {
+    return new Promise(resolve => {
+      renderMovePanel();
+      updatePartyBar();
+      let resolved = false;
+      function doResolve(val) { if (!resolved) { resolved = true; resolve(val); } }
+
+      // Direct onclick on each button — avoids delegation/bubbling issues
+      movePanel.querySelectorAll('.move-btn').forEach(btn => {
+        if (btn.disabled) return;
+        btn.onclick = () => doResolve({ type: 'move', move: activePokemon.moves[parseInt(btn.dataset.moveIdx)] });
+      });
+      const sb = movePanel.querySelector('.switch-btn');
+      if (sb) sb.onclick = async () => {
+        const idx = await doSwitchPanel(false);
+        if (idx >= 0) doResolve({ type: 'switch', targetIdx: idx });
+        else getPlayerAction().then(doResolve); // cancelled — re-render and retry
+      };
+      const rb = movePanel.querySelector('.restore-btn');
+      if (rb) rb.onclick = () => { if (!rb.disabled) doResolve({ type: 'restore' }); };
+    });
+  }
+
+  async function doSwitchPanel(forced) {
+    return new Promise(resolve => {
+      const panel = el('div', { className: 'switch-panel' });
+      panel.appendChild(el('div', {
+        style: { fontSize: 'clamp(1rem, 2.5vw, 1.5rem)', color: '#ffd700', marginBottom: '15px', letterSpacing: '2px' },
+        textContent: forced ? 'Send out next Pokemon!' : 'Switch to which Pokemon?'
+      }));
+      party.forEach((p, i) => {
+        if (i === activeIdx) return;
+        const opt = el('div', { className: `switch-option ${p.currentHp <= 0 ? 'fainted' : ''}` }, [
+          el('img', { src: spriteUrl(p.id) }),
+          el('div', {}, [
+            el('div', { className: 'sw-name', textContent: p.name }),
+            el('div', { className: 'sw-hp', textContent: `HP: ${p.currentHp} / ${p.maxHp}` })
+          ])
+        ]);
+        if (p.currentHp > 0) opt.addEventListener('click', () => { panel.remove(); playConfirmSound(); resolve(i); });
+        panel.appendChild(opt);
+      });
+      if (!forced) {
+        const cb = el('button', { className: 'btn', textContent: 'Cancel', style: { marginTop: '10px' } });
+        cb.addEventListener('click', () => { panel.remove(); resolve(-1); });
+        panel.appendChild(cb);
+      }
+      field.appendChild(panel);
+    });
+  }
+
+  // Entry message — send out both Pokemon with Poke Ball animations
+  // Mewtwo appears first
+  enemyPoke.querySelector('img').style.opacity = '0';
+  enemyPoke.querySelector('img').style.transform = 'scale(0.2)';
+  await wait(300);
+  await showMsg(`A wild MEWTWO appeared!`, 800);
+  await playSendOut(enemyPoke, false);
+  await wait(300);
+
+  // Player sends out their Pokemon
+  await showMsg(`Go, ${activePokemon.name}!`, 600);
+  await playSendOut(playerPoke, true);
+  await wait(200);
+
+  // MAIN BATTLE LOOP
+  while (true) {
+    // Check if current pokemon is fainted
+    if (activePokemon.currentHp <= 0) {
+      const aliveIdx = party.findIndex(p => p.currentHp > 0);
+      if (aliveIdx === -1) {
+        await wait(500);
+        stopBattleMusic();
+        window.removeEventListener('resize', resizeHandler);
+        await fadeOutElement(scene, 1000);
+        gameState.battleStats.pokemonRemaining = 0;
+        return 'defeat';
+      }
+      const ni = await doSwitchPanel(true);
+      activeIdx = ni;
+      activePokemon = party[activeIdx];
+      refreshPlayer(false);
+      await showMsg(`Go, ${activePokemon.name}!`, 600);
+      await playSendOut(playerPoke, true);
+      continue;
+    }
+
+    // Get player action
+    const action = await getPlayerAction();
+
+    if (action.type === 'switch') {
+      // Recall current Pokemon
+      await showMsg(`${activePokemon.name}, return!`, 600);
+      await playRecall(playerPoke, true);
+      // Switch
+      activeIdx = action.targetIdx;
+      activePokemon = party[activeIdx];
+      refreshPlayer(false);
+      // Send out new Pokemon
+      await showMsg(`Go, ${activePokemon.name}!`, 600);
+      await playSendOut(playerPoke, true);
+      // Mewtwo free attack
+      if (mewtwo.currentHp > 0) {
+        const mm = mewtwoAI(mewtwo, activePokemon);
+        await executeMove('enemy', mm);
+        if (activePokemon.currentHp <= 0) {
+          playFaintSound();
+          const s = $('#player-sprite');
+          if (s) s.style.opacity = '0.2';
+          await showMsg(`${activePokemon.name} fainted!`, 1000);
+          if (s) s.style.opacity = '';
+        }
+      }
+      continue;
+    }
+
+    if (action.type === 'restore') {
+      fullRestores--;
+      activePokemon.currentHp = activePokemon.maxHp;
+      resizeFX();
+      addFX(fxSparkles(fxCanvas.width*0.2, fxCanvas.height*0.65, '#44ff88'));
+      addFX(fxChargeGlow(fxCanvas.width*0.2, fxCanvas.height*0.65, '#44ff88'));
+      playHealSound();
+      flashScreen('rgba(0,255,100,0.3)', 500);
+      showDmgNum('player', activePokemon.maxHp, false, true);
+      updateHpBar('player');
+      await showMsg(`${activePokemon.name} was fully restored!`, 1000);
+      // Mewtwo free attack
+      if (mewtwo.currentHp > 0) {
+        const mm = mewtwoAI(mewtwo, activePokemon);
+        await executeMove('enemy', mm);
+        if (activePokemon.currentHp <= 0) {
+          playFaintSound();
+          const s = $('#player-sprite');
+          if (s) s.style.opacity = '0.2';
+          await showMsg(`${activePokemon.name} fainted!`, 1000);
+          if (s) s.style.opacity = '';
+        }
+      }
+      continue;
+    }
+
+    // Move action
+    const playerMove = action.move;
+    const mewtwoMove = mewtwoAI(mewtwo, activePokemon);
+
+    let playerFirst = activePokemon.spd >= mewtwo.spd;
+    if (playerMove.priority) playerFirst = true;
+    if (mewtwoMove.priority) playerFirst = false;
+    if (playerMove.priority && mewtwoMove.priority) playerFirst = activePokemon.spd >= mewtwo.spd;
+
+    const order = playerFirst
+      ? [{ side: 'player', move: playerMove }, { side: 'enemy', move: mewtwoMove }]
+      : [{ side: 'enemy', move: mewtwoMove }, { side: 'player', move: playerMove }];
+
+    for (const turn of order) {
+      const attacker = turn.side === 'player' ? activePokemon : mewtwo;
+      if (attacker.currentHp <= 0) continue;
+
+      await executeMove(turn.side, turn.move);
+
+      // Check defender fainted
+      const defender = turn.side === 'player' ? mewtwo : activePokemon;
+      if (defender.currentHp <= 0) {
+        if (turn.side === 'player') {
+          // Mewtwo fainted
+          playFaintSound();
+          const es = $('#enemy-sprite');
+          if (es) es.style.opacity = '0.2';
+          await showMsg('MEWTWO fainted!', 1200);
+          stopBattleMusic();
+          window.removeEventListener('resize', resizeHandler);
+          gameState.battleStats.pokemonRemaining = party.filter(p => p.currentHp > 0).length;
+          let maxDmg = 0;
+          for (const [nm, dm] of Object.entries(gameState.battleStats.mvpDamage)) {
+            if (dm > maxDmg) { maxDmg = dm; gameState.battleStats.mvp = nm; }
+          }
+          await fadeOutElement(scene, 1000);
+          return 'victory';
+        } else {
+          // Player pokemon fainted
+          playFaintSound();
+          const ps = $('#player-sprite');
+          if (ps) ps.style.opacity = '0.2';
+          await showMsg(`${activePokemon.name} fainted!`, 1000);
+          if (ps) ps.style.opacity = '';
+          break;
+        }
+      }
+
+      // Check attacker fainted (recoil)
+      if (attacker.currentHp <= 0 && turn.side === 'player') {
+        playFaintSound();
+        const ps = $('#player-sprite');
+        if (ps) ps.style.opacity = '0.2';
+        await showMsg(`${activePokemon.name} fainted!`, 1000);
+        if (ps) ps.style.opacity = '';
+        break;
+      }
+    }
+
+    await wait(300);
+  }
+}
+
+// ============================================================
+// SCENE: DEFEAT
+// ============================================================
+async function runDefeat() {
+  clearScene();
+  const scene = el('div', { className: 'scene active result-scene', style: { background: '#000' } });
+  sceneEl().appendChild(scene);
+
+  playSomberMusic();
+
+  const defeatText = el('div', {
+    className: 'result-title',
+    style: { color: '#ff4444', opacity: '0', transition: 'opacity 2s', textShadow: '0 0 30px rgba(255,0,0,0.3)' },
+    textContent: 'You were defeated...'
+  });
+  scene.appendChild(defeatText);
+  await wait(300);
+  defeatText.style.opacity = '1';
+  await wait(3000);
+  await fadeOutElement(defeatText, 1000);
+  defeatText.remove();
+
+  // Oak appears
+  const oakBox = el('div', { style: { textAlign: 'center', opacity: '0', transition: 'opacity 1.5s', maxWidth: '500px', padding: '0 20px' } });
+  const oakTitle = el('div', { textContent: 'PROFESSOR OAK', style: { color: '#fff', fontSize: 'clamp(1.2rem, 2.5vw, 1.6rem)', marginBottom: '20px', letterSpacing: '3px' } });
+  oakBox.appendChild(oakTitle);
+
+  const oakMsg1 = el('div', { className: 'oak-text', textContent: '"Don\'t give up. The world is counting on you."' });
+  oakBox.appendChild(oakMsg1);
+  scene.appendChild(oakBox);
+  await wait(100);
+  oakBox.style.opacity = '1';
+  await wait(3000);
+
+  const oakMsg2 = el('div', { className: 'oak-text', style: { marginTop: '20px', opacity: '0', transition: 'opacity 1s' }, textContent: '"Take them all. This is humanity\'s last stand."' });
+  oakBox.appendChild(oakMsg2);
+  await wait(100);
+  oakMsg2.style.opacity = '1';
+  playConfirmSound();
+  await wait(2000);
+
+  // Show all three starters briefly
+  const starterRow = el('div', { style: { display: 'flex', gap: '15px', marginTop: '20px', opacity: '0', transition: 'opacity 1s' } });
+  ['charizard', 'rayquaza', 'pikachu'].forEach(key => {
+    const d = STARTERS_DATA[key];
+    const img = el('img', { src: spriteUrl(d.id), style: { width: '64px', height: '64px', imageRendering: 'pixelated' } });
+    starterRow.appendChild(img);
+  });
+  oakBox.appendChild(starterRow);
+  await wait(100);
+  starterRow.style.opacity = '1';
+  playHealSound();
+  flashScreen('rgba(0,255,136,0.3)', 500);
+  await wait(2000);
+
+  const btn = el('button', { className: 'btn', textContent: 'FOR THE WORLD' });
+  oakBox.appendChild(btn);
+
+  await new Promise(r => btn.addEventListener('click', () => {
+    playSelectSound();
+    screenShake('small', 300);
+    r();
+  }));
+
+  await fadeOutElement(scene, 800);
+}
+
+// ============================================================
+// SCENE: VICTORY
+// ============================================================
+async function runVictory() {
+  clearScene();
+  const scene = el('div', { className: 'scene active result-scene', style: { background: '#000' } });
+  sceneEl().appendChild(scene);
+
+  // Bright light
+  const light = el('div', { style: {
+    position: 'absolute', top: '0', left: '0', width: '100%', height: '100%',
+    background: 'radial-gradient(circle, rgba(255,255,255,0.8) 0%, rgba(255,215,0,0.4) 40%, transparent 70%)',
+    opacity: '0', transition: 'opacity 2s', zIndex: '1'
+  }});
+  scene.appendChild(light);
+  await wait(300);
+  light.style.opacity = '1';
+  playVictoryFanfare();
+  flashScreen('rgba(255,255,255,0.5)', 800);
+  await wait(2000);
+  light.style.opacity = '0.2';
+
+  const title = el('div', {
+    className: 'result-title',
+    style: { color: '#ffd700', textShadow: '0 0 40px rgba(255,215,0,0.6)', zIndex: '2', opacity: '0', transition: 'opacity 1.5s' },
+    textContent: 'THE WORLD IS SAVED'
+  });
+  scene.appendChild(title);
+  await wait(300);
+  title.style.opacity = '1';
+  await wait(2500);
+
+  const stats = gameState.battleStats;
+  const statsBox = el('div', { className: 'result-stats', style: { zIndex: '2', opacity: '0', transition: 'opacity 1s' } });
+  statsBox.innerHTML = `
+    <div class="stat-label">Total Damage Dealt</div>
+    <div class="stat-value">${stats.damageDealt}</div>
+    <br>
+    <div class="stat-label">Pokemon Remaining</div>
+    <div class="stat-value">${stats.pokemonRemaining} / ${gameState.party.length}</div>
+    <br>
+    <div class="stat-label">MVP</div>
+    <div class="mvp">${stats.mvp || 'N/A'}</div>
+    <div class="stat-value" style="font-size:0.8rem">${stats.mvpDamage[stats.mvp] || 0} damage dealt</div>
+  `;
+  scene.appendChild(statsBox);
+  await wait(300);
+  statsBox.style.opacity = '1';
+  await wait(2000);
+
+  const restartBtn = el('button', { className: 'btn', textContent: 'PLAY AGAIN', style: { zIndex: '2' } });
+  scene.appendChild(restartBtn);
+  await new Promise(r => restartBtn.addEventListener('click', () => { r(); }));
+  await fadeOutElement(scene, 600);
+  startGame();
+}
+
+// ============================================================
+// MAIN GAME LOOP
+// ============================================================
+async function startGame() {
+  stopBattleMusic();
+  await showStartScreen();
+  await runIntro();
+  const starterKey = await runSelection();
+
+  gameState.selectedStarter = starterKey;
+  gameState.isRematch = false;
+
+  await runEntrance();
+
+  // First battle: 1 pokemon
+  const firstParty = [createPokemon(starterKey)];
+  let result = await runBattleFull(firstParty);
+
+  if (result === 'victory') {
+    await runVictory();
+    return;
+  }
+
+  // Defeat -> revival
+  await runDefeat();
+
+  // Rematch with all 3
+  gameState.isRematch = true;
+  const allKeys = ['charizard', 'rayquaza', 'pikachu'];
+  const rematchParty = allKeys.map(k => createPokemon(k));
+  // Put selected starter first
+  const selectedIdx = allKeys.indexOf(starterKey);
+  if (selectedIdx > 0) {
+    const tmp = rematchParty[0];
+    rematchParty[0] = rematchParty[selectedIdx];
+    rematchParty[selectedIdx] = tmp;
+  }
+
+  while (true) {
+    startBattleMusic();
+    result = await runBattleFull(rematchParty);
+    if (result === 'victory') {
+      await runVictory();
+      return;
+    }
+    // Lost again - heal and retry
+    rematchParty.forEach(p => {
+      p.currentHp = p.maxHp;
+      p.moves.forEach(m => m.pp = m.maxPp);
+    });
+    // Quick defeat message
+    clearScene();
+    const retryScene = el('div', { className: 'scene active result-scene', style: { background: '#000' } });
+    const retryText = el('div', { className: 'oak-text', textContent: '"Rise again. The world still needs you."', style: { opacity: '0', transition: 'opacity 1s' } });
+    retryScene.appendChild(retryText);
+    const retryBtn = el('button', { className: 'btn', textContent: 'TRY AGAIN', style: { opacity: '0', transition: 'opacity 1s' } });
+    retryScene.appendChild(retryBtn);
+    sceneEl().appendChild(retryScene);
+    await wait(300);
+    retryText.style.opacity = '1';
+    playSomberMusic();
+    playHealSound();
+    await wait(1000);
+    retryBtn.style.opacity = '1';
+    await new Promise(r => retryBtn.addEventListener('click', () => { playSelectSound(); r(); }));
+    await fadeOutElement(retryScene, 600);
+  }
+}
+
+// Preload key images
+function preloadImages() {
+  const urls = [
+    artUrl(6), artUrl(384), artUrl(25), artUrl(150),
+    spriteUrl(150), backUrl(6), backUrl(384), backUrl(25),
+    ...LEGENDARIES.map(l => spriteUrl(l.id)),
+    ...FLEE_POKEMON.map(id => spriteUrl(id))
+  ];
+  urls.forEach(u => { const img = new Image(); img.src = u; });
+}
+
+preloadImages();
+startGame();
+</script>
+</body>
+</html>
